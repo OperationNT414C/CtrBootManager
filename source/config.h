@@ -94,15 +94,20 @@ typedef struct {
     int menuFadeInTimeStart;
 
     char bgImgTop[128];
+    char bgImgTop3D[128];
     char bgImgBot[128];
     bool imgError;
+    bool imgError3D;
     bool imgErrorBot;
     u8 *bgImgTopBuff;
+    u8 *bgImgTop3DBuff;
     u8 *bgImgBotBuff;
     off_t bgImgTopSize;
+    off_t bgImgTop3DSize;
     off_t bgImgBotSize;
 
     movie_config_s movieTop;
+    movie_config_s movieTop3D;
     movie_config_s movieBot;
 
 } boot_config_s;
@@ -119,7 +124,7 @@ void configSave();
 
 void configExit();
 
-void loadBg(gfxScreen_t screen);
+void loadBg(gfxScreen_t screen, gfx3dSide_t side);
 
 #ifdef __cplusplus
 }
