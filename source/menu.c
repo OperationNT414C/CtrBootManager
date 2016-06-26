@@ -13,7 +13,7 @@
 
 void drawBg() {
     u8* fbTop = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-    if (readTopMovie(fbTop) < 0)
+    if (readMovie(fbTop, &anim->topMovie) < 0)
     {
         if (!config->imgError) {
             memcpy(fbTop, config->bgImgTopBuff, (size_t) config->bgImgTopSize);
@@ -22,7 +22,7 @@ void drawBg() {
         }
     }
     u8* fbBot = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
-    if (readBotMovie(fbBot) < 0)
+    if (readMovie(fbBot, &anim->botMovie) < 0)
     {
         if (!config->imgErrorBot) {
             memcpy(fbBot, config->bgImgBotBuff, (size_t) config->bgImgBotSize);
@@ -31,6 +31,15 @@ void drawBg() {
         }
     }
     drawRectColor(GFX_TOP, GFX_LEFT, MENU_MIN_X, MENU_MIN_Y - 20, MENU_MAX_X, MENU_MAX_Y, anim->borders);
+
+    u8* fbTop3D = IS3DACTIVE ? gfxGetFramebuffer(GFX_TOP, GFX_RIGHT, NULL, NULL) : NULL;
+    if (fbTop3D)
+    {
+        if (readMovie(fbTop3D, &anim->top3DMovie) < 0 && !config->imgError)
+            memcpy(fbTop3D, config->bgImgTop3DBuff, (size_t) config->bgImgTop3DSize);
+
+        drawRectColor(GFX_TOP, GFX_RIGHT, MENU_MIN_X, MENU_MIN_Y - 20, MENU_MAX_X, MENU_MAX_Y, anim->borders);
+    }
 }
 
 void drawTitle(const char *format, ...) {
@@ -42,6 +51,8 @@ void drawTitle(const char *format, ...) {
     va_end(argp);
 
     gfxDrawText(GFX_TOP, GFX_LEFT, &fontDefault, msg, 140, 25);
+    if( IS3DACTIVE )
+        gfxDrawText(GFX_TOP, GFX_RIGHT, &fontDefault, msg, 140, 25);
 }
 
 void drawItem(bool selected, int y, const char *format, ...) {
@@ -54,10 +65,14 @@ void drawItem(bool selected, int y, const char *format, ...) {
 
     if (selected) {
         gfxDrawRectangle(GFX_TOP, GFX_LEFT, anim->highlight, (s16) (MENU_MIN_X + 4), (s16) (y + MENU_MIN_Y), 361, 15);
+        if( IS3DACTIVE )
+            gfxDrawRectangle(GFX_TOP, GFX_RIGHT, anim->highlight, (s16) (MENU_MIN_X + 4), (s16) (y + MENU_MIN_Y), 361, 15);
     }
     memcpy(fontDefault.color, selected ? anim->fntSel : anim->fntDef, sizeof(u8[4]));
-    gfxDrawText(GFX_TOP, GFX_LEFT, &fontDefault, msg, (s16) (MENU_MIN_X + 6),
-                (s16) y + (s16) MENU_MIN_Y);
+
+    gfxDrawText(GFX_TOP, GFX_LEFT, &fontDefault, msg, (s16) (MENU_MIN_X + 6), (s16) y + (s16) MENU_MIN_Y);
+    if( IS3DACTIVE )
+        gfxDrawText(GFX_TOP, GFX_RIGHT, &fontDefault, msg, (s16) (MENU_MIN_X + 6), (s16) y + (s16) MENU_MIN_Y);
 
     memcpy(fontDefault.color, anim->fntDef, sizeof(u8[4]));
 }
@@ -72,10 +87,13 @@ void drawItemN(bool selected, int maxChar, int y, const char *format, ...) {
 
     if (selected) {
         gfxDrawRectangle(GFX_TOP, GFX_LEFT, anim->highlight, (s16) (MENU_MIN_X + 4), (s16) (y + MENU_MIN_Y), 361, 15);
+        if( IS3DACTIVE )
+            gfxDrawRectangle(GFX_TOP, GFX_RIGHT, anim->highlight, (s16) (MENU_MIN_X + 4), (s16) (y + MENU_MIN_Y), 361, 15);
     }
     memcpy(fontDefault.color, selected ? anim->fntSel : anim->fntDef, sizeof(u8[4]));
-    gfxDrawTextN(GFX_TOP, GFX_LEFT, &fontDefault, msg, maxChar, (s16) (MENU_MIN_X + 6),
-                 (s16) y + (s16) MENU_MIN_Y);
+    gfxDrawTextN(GFX_TOP, GFX_LEFT, &fontDefault, msg, maxChar, (s16) (MENU_MIN_X + 6), (s16) y + (s16) MENU_MIN_Y);
+    if( IS3DACTIVE )
+        gfxDrawTextN(GFX_TOP, GFX_RIGHT, &fontDefault, msg, maxChar, (s16) (MENU_MIN_X + 6), (s16) y + (s16) MENU_MIN_Y);
 
     memcpy(fontDefault.color, anim->fntDef, sizeof(u8[4]));
 }
