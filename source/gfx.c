@@ -3,7 +3,6 @@
 #include <string.h>
 
 #ifdef ARM9
-
 #include "arm9/source/common.h"
 #include "memory.h"
 #else
@@ -138,19 +137,17 @@ void gfxFillColor(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[3]) {
 void gfxFillColorGradient(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColorStart[3], u8 rgbColorEnd[3]) {
     u16 fbWidth, fbHeight;
     u8 *fbAdr = gfxGetFramebuffer(screen, side, &fbWidth, &fbHeight);
-    u8 colorLine[fbWidth * 3];
+    u8 colorLine[1200]; // Avoid dynamic "fbWidth*3", illogical crash on 3DSX version with top right buffer
 
     //TODO : optimize; use GX command ?
+    // Avoid float operations, illogical crash on 3DSX version with top right buffer
     int i;
-    float n;
-    float total = (float) (fbWidth - 1);
-    // make slightly bigger to prevent gradients from blending around.  SHould be removed and have the gradient color be better later.
-    total *= 1.5f;
+    int width = fbWidth;
     for (i = 0; i < fbWidth; i++) {
-        n = (float) i / total;
-        colorLine[i * 3 + 0] = (float) rgbColorStart[2] * (1.0f - n) + (float) rgbColorEnd[2] * n;
-        colorLine[i * 3 + 1] = (float) rgbColorStart[1] * (1.0f - n) + (float) rgbColorEnd[1] * n;
-        colorLine[i * 3 + 2] = (float) rgbColorStart[0] * (1.0f - n) + (float) rgbColorEnd[0] * n;
+        int minus = width-i-1;
+        colorLine[i * 3 + 0] = (minus*rgbColorStart[2] + i*rgbColorEnd[2]) / fbWidth;
+        colorLine[i * 3 + 1] = (minus*rgbColorStart[1] + i*rgbColorEnd[1]) / fbWidth;
+        colorLine[i * 3 + 2] = (minus*rgbColorStart[0] + i*rgbColorEnd[0]) / fbWidth;
     }
 
     for (i = 0; i < fbHeight; i++) {
@@ -219,6 +216,8 @@ void gfxDrawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[4], s16 
 
 void gfxClearTop(u8 top1[3], u8 top2[3]) {
     gfxFillColorGradient(GFX_TOP, GFX_LEFT, top1, top2);
+    if( IS3DACTIVE )
+        gfxFillColorGradient(GFX_TOP, GFX_RIGHT, top1, top2);
 }
 
 void gfxClearBot(u8 bot[8]) {
@@ -235,6 +234,8 @@ void gfxClear() {
     memset(PTR_BOT_BG, 0, BOT_SCREEN_SIZE);
 #else
     gfxFillColor(GFX_TOP, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
+    if( IS3DACTIVE )
+        gfxFillColor(GFX_TOP, GFX_RIGHT, (u8[3]) {0x00, 0x00, 0x00});
     gfxFillColor(GFX_BOTTOM, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
 #endif
 }
