@@ -8,8 +8,13 @@ u8 *gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16 *width, u16 *hei
 
 #define TOP_SCREEN_SIZE (400*240*3)
 #define BOT_SCREEN_SIZE (320*240*3)
+#define IS3DACTIVE false
+
 #else
+
 #include <3ds.h>
+#define IS3DACTIVE gfxIs3D()
+
 #endif
 
 #include "font.h"
