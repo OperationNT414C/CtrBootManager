@@ -48,7 +48,10 @@ void animInit()
     
     anim->topMovie.frameSize = TOP_SCREEN_SIZE;
     movieInit(&anim->topMovie);
-
+#ifndef ARM9
+    anim->top3DMovie.frameSize = TOP_SCREEN_SIZE;
+    movieInit(&anim->top3DMovie);
+#endif
     anim->botMovie.frameSize = BOT_SCREEN_SIZE;
     movieInit(&anim->botMovie);
 }
@@ -203,6 +206,9 @@ void animSetup()
                botComp, PTR_MOVIE_LOOP+anim->topMovie.loopStreamSize);
 #else
     movieSetup(&config->movieTop, &anim->topMovie);
+    movieSetup(&config->movieTop3D, &anim->top3DMovie);
+    if ( NULL != anim->top3DMovie.file && !gfxIs3D() )
+        gfxSet3D(true);
     movieSetup(&config->movieBot, &anim->botMovie);
 #endif
 
@@ -421,7 +427,7 @@ int readMovie(u8* fb, movie_state_s* movie)
                     }
                     else
                     {
-                        int fileOffset = frameToGet*movie->frameSize;
+                        int fileOffset = (frameToGet+movie->loopStartFrame)*movie->frameSize;
                         readMovieFrame(movie->file, &fileOffset, NULL, (char*)fb, movie->frameSize);
                     }
                 }
@@ -456,7 +462,7 @@ int readMovie(u8* fb, movie_state_s* movie)
                     }
                     else
                     {
-                        int fileOffset = frameToGet*movie->frameSize;
+                        int fileOffset = (frameToGet+movie->loopStartFrame)*movie->frameSize;
                         readMovieFrame(movie->file, &fileOffset, NULL, (char*)fb, movie->frameSize);
                     }
                 }
@@ -476,16 +482,6 @@ int readMovie(u8* fb, movie_state_s* movie)
     return 0;
 }
 
-int readTopMovie(u8* fb)
-{
-    return readMovie(fb, &anim->topMovie);
-}
-
-int readBotMovie(u8* fb)
-{
-    return readMovie(fb, &anim->botMovie);
-}
-
 void animExit()
 {
     if (anim) {
@@ -494,6 +490,9 @@ void animExit()
         if (anim->botMovie.file)
             fileHandleClose(anim->botMovie.file);
 #ifndef ARM9
+        if (anim->top3DMovie.file)
+            fileHandleClose(anim->top3DMovie.file);
+
         if (anim->topMovie.file)
             free(anim->topMovie.file);
         if (anim->topMovie.comp)
@@ -505,6 +504,17 @@ void animExit()
         if (anim->topMovie.loopStream)
             free(anim->topMovie.loopStream);
 
+        if (anim->top3DMovie.file)
+            free(anim->top3DMovie.file);
+        if (anim->top3DMovie.comp)
+        {
+            free(anim->top3DMovie.comp->frame_prev_write); // Same as frame_prev_read
+            free(anim->top3DMovie.comp->frame_comp);
+            free(anim->top3DMovie.comp);
+        }
+        if (anim->top3DMovie.loopStream)
+            free(anim->top3DMovie.loopStream);
+        
         if (anim->botMovie.file)
             free(anim->botMovie.file);
         if (anim->botMovie.comp)
