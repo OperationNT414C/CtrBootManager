@@ -130,7 +130,7 @@ void readMovieProperty(movie_config_s* mvConf, const char *name, const char* val
         else if ( 0 == strcmp(value, "QuickLZ") )
             mvConf->compressed = 1;
     } else if (NAME_MATCH("loopCount")) {
-        if ( value[0] == 'I' || value[0] <= 'i' ) // Value for "ININITE" or "infinite"
+        if ( value[0] == 'I' || value[0] == 'i' ) // Value for "INFINITE" or "infinite"
             mvConf->loopCount = -1;
         else
             mvConf->loopCount = atoi(value);
@@ -278,6 +278,11 @@ static int handler(void *user, const char *section, const char *name,
         } else if (NAME_MATCH("bgImgBot")) {
             strncpy(config->bgImgBot, item, 128);
         }
+    #ifndef ARM9
+        else if (NAME_MATCH("bgImgTop3D")) {
+            strncpy(config->bgImgTop3D, item, 128);
+        }
+    #endif
     }
     
     // animation
@@ -308,6 +313,11 @@ static int handler(void *user, const char *section, const char *name,
     } else if (SECTION_MATCH("bottomMovie")) {
         readMovieProperty(&config->movieBot, name, item);
     }
+#ifndef ARM9
+    else if (SECTION_MATCH("top3DMovie")) {
+        readMovieProperty(&config->movieTop3D, name, item);
+    }
+#endif
     
     // entries
     else if (SECTION_MATCH("entry"))
@@ -367,12 +377,27 @@ static int handler(void *user, const char *section, const char *name,
     return 0;
 }
 
+void configMovieInit(movie_config_s* mvConf)
+{
+    mvConf->path[0] = '\0';
+    mvConf->compressed = 0;
+    mvConf->loopCount = 0;
+    mvConf->loopStreamType = 0;
+    mvConf->loopReverse = 0;
+    mvConf->loopStartFrame = 0;
+    mvConf->loopTimeOnStartFrame = 0;
+    mvConf->loopEndFrame = -1;
+    mvConf->loopTimeOnEndFrame = 0;
+}
+
 void configThemeInit() {
 
     // theme
     config->imgError = true;
+    config->imgError3D = true;
     config->imgErrorBot = true;
     config->bgImgTop[0] = '\0';
+    config->bgImgTop3D[0] = '\0';
     config->bgImgBot[0] = '\0';
     memcpy(config->bgTop1, (u8[3]) {0x4a, 0x00, 0x31}, sizeof(u8[3]));
     memcpy(config->bgTop2, (u8[3]) {0x6f, 0x01, 0x49}, sizeof(u8[3]));
@@ -394,25 +419,9 @@ void configThemeInit() {
     config->menuFadeInTimeStart = 0;
     
     // movie
-    config->movieTop.path[0] = '\0';
-    config->movieTop.compressed = 0;
-    config->movieTop.loopCount = 0;
-    config->movieTop.loopStreamType = 0;
-    config->movieTop.loopReverse = 0;
-    config->movieTop.loopStartFrame = 0;
-    config->movieTop.loopTimeOnStartFrame = 0;
-    config->movieTop.loopEndFrame = -1;
-    config->movieTop.loopTimeOnEndFrame = 0;
-
-    config->movieBot.path[0] = '\0';
-    config->movieBot.compressed = 0;
-    config->movieBot.loopCount = 0;
-    config->movieBot.loopStreamType = 0;
-    config->movieBot.loopReverse = 0;
-    config->movieBot.loopStartFrame = 0;
-    config->movieBot.loopTimeOnStartFrame = 0;
-    config->movieBot.loopEndFrame = -1;
-    config->movieBot.loopTimeOnEndFrame = 0;
+    configMovieInit(&config->movieTop);
+    configMovieInit(&config->movieTop3D);
+    configMovieInit(&config->movieBot);
 }
 
 int configInit() {
@@ -459,8 +468,13 @@ int configInit() {
     // Fix for fade in effect first frame
     fontDefault.color[3] = 0x00;
 
-    loadBg(GFX_TOP);
-    loadBg(GFX_BOTTOM);
+    loadBg(GFX_TOP, GFX_LEFT);
+#ifndef ARM9
+    loadBg(GFX_TOP, GFX_RIGHT);
+    if (!config->imgError3D && !gfxIs3D())
+        gfxSet3D(true);
+#endif
+    loadBg(GFX_BOTTOM, GFX_LEFT);
 
     return 0;
 }
@@ -545,6 +559,10 @@ void configSave() {
     else
         size += snprintf(cfg+size, 256, "font2=%02X%02X%02X;\n", config->fntSel[0], config->fntSel[1], config->fntSel[2]);
     size += snprintf(cfg+size, 256, "bgImgTop=%s;\n", config->bgImgTop);
+#ifndef ARM9
+    if (config->bgImgTop3D[0] != '\0')
+        size += snprintf(cfg+size, 256, "bgImgTop3D=%s;\n", config->bgImgTop3D);
+#endif
     size += snprintf(cfg+size, 256, "bgImgBot=%s;\n\n", config->bgImgBot);
 
     // animation section
@@ -625,6 +643,13 @@ void configSave() {
         size += snprintf(cfg+size, 256, "\n[topMovie]\n");
         writeMovieProperty(&config->movieTop, cfg, &size);
     }
+#ifndef ARM9
+    if ( config->movieTop3D.path[0] != '\0' )
+    {
+        size += snprintf(cfg+size, 256, "\n[top3DMovie]\n");
+        writeMovieProperty(&config->movieTop3D, cfg, &size);
+    }
+#endif
     if ( config->movieBot.path[0] != '\0' )
     {
         size += snprintf(cfg+size, 256, "\n[bottomMovie]\n");
@@ -678,6 +703,9 @@ void configExit() {
         if (config->bgImgTopBuff) {
             free(config->bgImgTopBuff);
         }
+        if (config->bgImgTop3DBuff) {
+            free(config->bgImgTop3DBuff);
+        }
         if (config->bgImgBotBuff) {
             free(config->bgImgBotBuff);
         }
@@ -686,9 +714,13 @@ void configExit() {
 #endif
 }
 
-void loadBg(gfxScreen_t screen) {
+void loadBg(gfxScreen_t screen, gfx3dSide_t side) {
 
-    const char *path = screen == GFX_TOP ? config->bgImgTop : config->bgImgBot;
+#ifdef ARM9
+    const char *path = (screen == GFX_TOP ? config->bgImgTop : config->bgImgBot);
+#else
+    const char *path = (screen == GFX_TOP ? (side == GFX_RIGHT ? config->bgImgTop3D : config->bgImgTop) : config->bgImgBot);
+#endif
     size_t size = fileSize(path);
     if ( size == -1 || size == 0 ) {
         return;
@@ -704,9 +736,20 @@ void loadBg(gfxScreen_t screen) {
     }
 
     if (screen == GFX_TOP) {
-        config->bgImgTopSize = size;
-        config->bgImgTopBuff = bg;
-        config->imgError = false;
+    #ifndef ARM9
+        if (side == GFX_RIGHT) {
+            config->bgImgTop3DSize = size;
+            config->bgImgTop3DBuff = bg;
+            config->imgError3D = false;
+        } else
+        {
+    #endif
+            config->bgImgTopSize = size;
+            config->bgImgTopBuff = bg;
+            config->imgError = false;
+    #ifndef ARM9
+        }
+    #endif
     } else {
         config->bgImgBotSize = size;
         config->bgImgBotBuff = bg;
