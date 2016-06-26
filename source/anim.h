@@ -37,6 +37,8 @@ typedef struct {
     int loopTimeOnEndFrame;
 } movie_state_s;
 
+int readMovie(u8* fb, movie_state_s* movie);
+
 typedef struct {
     int timer;
     int active;
@@ -50,6 +52,7 @@ typedef struct {
     u8 fntSel[4];
     
     movie_state_s topMovie;
+    movie_state_s top3DMovie;
     movie_state_s botMovie;
 } anim_state_s;
 
@@ -58,8 +61,6 @@ anim_state_s* anim;
 void animInit();
 void animSetup();
 void incrementAnimTime();
-int readTopMovie(u8* fb);
-int readBotMovie(u8* fb);
 void animExit();
 
 #ifdef __cplusplus
