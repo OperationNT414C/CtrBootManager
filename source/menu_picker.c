@@ -13,7 +13,7 @@
 
 #endif
 
-#include "gfx.h"
+#include "draw.h"
 #include "picker.h"
 #include "utility.h"
 #include "config.h"
@@ -152,7 +152,7 @@ static void draw() {
         y++;
     }
 
-    gfxSwap();
+    swapFrameBuffers();
 }
 
 void pick_file(file_s *picked, const char *path) {
