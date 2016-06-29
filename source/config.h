@@ -18,6 +18,7 @@ extern "C" {
 
 #endif
 
+#include "draw.h"
 #include "loader.h" // Binary patches define
 
 #define BIT(n) (1U<<(n))
