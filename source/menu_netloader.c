@@ -1,6 +1,6 @@
 #include <3ds.h>
 #include <stdio.h>
-#include "gfx.h"
+#include "draw.h"
 #include "netloader.h"
 #include "utility.h"
 #include "loader.h"
@@ -22,8 +22,8 @@ int menu_netloader() {
             ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, (ip >> 24) & 0xFF, NETLOADER_PORT);
 
     drawBg();
-    gfxDrawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
-    gfxSwap();
+    drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
+    swapFrameBuffers();
 
     while (aptMainLoop()) {
 
