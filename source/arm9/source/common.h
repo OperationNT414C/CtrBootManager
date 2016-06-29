@@ -38,16 +38,3 @@
 #define getle64(d) (*((u64*) (d)))
 #define align(v,a) \
     (((v) % (a)) ? ((v) + (a) - ((v) % (a))) : (v))
-
-typedef enum
-{
-    GFX_TOP = 0,   ///< Top screen
-    GFX_BOTTOM = 1 ///< Bottom screen
-}gfxScreen_t;
-
-
-typedef enum
-{
-    GFX_LEFT = 0, ///< Left eye framebuffer
-    GFX_RIGHT = 1,///< Right eye framebuffer
-}gfx3dSide_t;
