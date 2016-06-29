@@ -7,7 +7,7 @@
 #include <time.h>
 
 #include "config.h"
-#include "gfx.h"
+#include "draw.h"
 #include "menu.h"
 #include "utility.h"
 
@@ -129,12 +129,12 @@ int menu_config() {
         drawItem(menu_index == 2, 32, "Recovery key:  %s", get_button(config->recovery));
 #ifndef ARM9
         drawItem(menu_index == 3, 48, "Bootfix:  %i", config->autobootfix);
-        drawInfo("CtrBootManager v2.1.0");
+        drawInfo("CtrBootManager v2.1.1");
 #else
-        drawInfo("CtrBootManager9 v2.1.0");    
+        drawInfo("CtrBootManager9 v2.1.1");    
 #endif
 
-        gfxSwap();
+        swapFrameBuffers();
     }
     return -1;
 }
