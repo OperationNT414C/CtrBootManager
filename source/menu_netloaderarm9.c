@@ -12,7 +12,7 @@
 #include <malloc.h>
 #include "utility.h"
 #include "menu.h"
-#include "gfx.h"
+#include "draw.h"
 
 int menu_netloaderarm9(void) {
 
@@ -51,8 +51,8 @@ int menu_netloaderarm9(void) {
                     "IP: %s, Port: %d\n\nPress B to cancel\n",
             inet_ntoa(sa.sin_addr), BRAHMA_NETWORK_PORT);
     drawBg();
-    gfxDrawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
-    gfxSwap();
+    drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
+    swapFrameBuffers();
 
     sflags = fcntl(sockfd, F_GETFL);
     if (sflags == -1) {
@@ -84,8 +84,8 @@ int menu_netloaderarm9(void) {
         if (recvd != -1) {
             total += recvd;
             drawBg();
-            gfxDrawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, "%i", total);
-            gfxSwap();
+            drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, "%i", total);
+            swapFrameBuffers();
         }
         if (total >= ARM9_PAYLOAD_MAX_SIZE) {
             debug("Err: invalid payload size\n");
