@@ -10,7 +10,6 @@
 #endif
 
 #include <stdarg.h>
-#include "gfx.h"
 #include "text.h"
 #include "anim.h"
 
@@ -90,7 +89,7 @@ void drawRectColor(gfxScreen_t screen, gfx3dSide_t side, int x1, int y1, int x2,
     drawRect(screen, side, x1, y1, x2, y2, rgbaColor[0], rgbaColor[1], rgbaColor[2], rgbaColor[3]);
 }
 
-void gfxDrawTextf(gfxScreen_t screen, gfx3dSide_t side, font_s *f, s16 x, s16 y, const char *fmt, ...) {
+void drawTextf(gfxScreen_t screen, gfx3dSide_t side, font_s *f, s16 x, s16 y, const char *fmt, ...) {
     char s[512];
     memset(s, 0, 512);
     va_list args;
@@ -98,10 +97,10 @@ void gfxDrawTextf(gfxScreen_t screen, gfx3dSide_t side, font_s *f, s16 x, s16 y,
     int len = vsprintf(s, fmt, args);
     va_end(args);
     if (len)
-        gfxDrawText(screen, side, f, s, x, y);
+        drawText(screen, side, f, s, x, y);
 }
 
-void gfxDrawText(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, s16 x, s16 y) {
+void drawText(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, s16 x, s16 y) {
     if (!str)return;
     if (!f)f = &fontDefault;
 
@@ -111,7 +110,7 @@ void gfxDrawText(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, s16
     drawString(fbAdr, f, str, x, 240 - y, fbHeight, fbWidth);
 }
 
-void gfxDrawTextN(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, u16 length, s16 x, s16 y) {
+void drawTextN(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, u16 length, s16 x, s16 y) {
     if (!str)return;
     if (!f)f = &fontDefault;
 
@@ -121,7 +120,7 @@ void gfxDrawTextN(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, u1
     drawStringN(fbAdr, f, str, length, x, 240 - y, fbHeight, fbWidth);
 }
 
-void gfxFillColor(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[3]) {
+void fillColor(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[3]) {
     u16 fbWidth, fbHeight;
     u8 *fbAdr = gfxGetFramebuffer(screen, side, &fbWidth, &fbHeight);
 
@@ -134,7 +133,7 @@ void gfxFillColor(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[3]) {
     }
 }
 
-void gfxFillColorGradient(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColorStart[3], u8 rgbColorEnd[3]) {
+void fillColorGradient(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColorStart[3], u8 rgbColorEnd[3]) {
     u16 fbWidth, fbHeight;
     u8 *fbAdr = gfxGetFramebuffer(screen, side, &fbWidth, &fbHeight);
     u8 colorLine[1200]; // Avoid dynamic "fbWidth*3", illogical crash on 3DSX version with top right buffer
@@ -156,7 +155,7 @@ void gfxFillColorGradient(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColorStart
     }
 }
 
-void _gfxDrawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbaColor[4], s16 x, s16 y, u16 width, u16 height) {
+void _drawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbaColor[4], s16 x, s16 y, u16 width, u16 height) {
     u16 fbWidth, fbHeight;
     u8 *fbAdr = gfxGetFramebuffer(screen, side, &fbWidth, &fbHeight);
 
@@ -210,21 +209,21 @@ void _gfxDrawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbaColor[4], s1
 	}
 }
 
-void gfxDrawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[4], s16 x, s16 y, u16 width, u16 height) {
-    _gfxDrawRectangle(screen, side, rgbColor, 240 - y, x, height, width);
+void drawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[4], s16 x, s16 y, u16 width, u16 height) {
+    _drawRectangle(screen, side, rgbColor, 240 - y, x, height, width);
 }
 
-void gfxClearTop(u8 top1[3], u8 top2[3]) {
-    gfxFillColorGradient(GFX_TOP, GFX_LEFT, top1, top2);
+void clearTop(u8 top1[3], u8 top2[3]) {
+    fillColorGradient(GFX_TOP, GFX_LEFT, top1, top2);
     if( IS3DACTIVE )
-        gfxFillColorGradient(GFX_TOP, GFX_RIGHT, top1, top2);
+        fillColorGradient(GFX_TOP, GFX_RIGHT, top1, top2);
 }
 
-void gfxClearBot(u8 bot[8]) {
-    gfxFillColor(GFX_BOTTOM, GFX_LEFT, bot);
+void clearBot(u8 bot[8]) {
+    fillColor(GFX_BOTTOM, GFX_LEFT, bot);
 }
 
-void gfxClear() {
+void clearFrameBuffers() {
 #ifdef ARM9
     memset(PTR_TOP_SCREEN, 0, TOP_SCREEN_SIZE);
     memset(PTR_BOT_SCREEN, 0, BOT_SCREEN_SIZE);
@@ -233,14 +232,14 @@ void gfxClear() {
     memset(PTR_TOP_BG, 0, TOP_SCREEN_SIZE);
     memset(PTR_BOT_BG, 0, BOT_SCREEN_SIZE);
 #else
-    gfxFillColor(GFX_TOP, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
+    fillColor(GFX_TOP, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
     if( IS3DACTIVE )
-        gfxFillColor(GFX_TOP, GFX_RIGHT, (u8[3]) {0x00, 0x00, 0x00});
-    gfxFillColor(GFX_BOTTOM, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
+        fillColor(GFX_TOP, GFX_RIGHT, (u8[3]) {0x00, 0x00, 0x00});
+    fillColor(GFX_BOTTOM, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
 #endif
 }
 
-void gfxSwap() {
+void swapFrameBuffers() {
 #ifdef ARM9
     memcpy(PTR_TOP_SCREEN, PTR_TOP_SCREEN_BUF, TOP_SCREEN_SIZE);
     memcpy(PTR_BOT_SCREEN, PTR_BOT_SCREEN_BUF, BOT_SCREEN_SIZE);
