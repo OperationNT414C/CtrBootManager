@@ -8,16 +8,18 @@
 #include "arm9/source/hid.h"
 #include "arm9/source/i2c.h"
 #include "arm9/source/fatfs/ff.h"
+#include "memory.h"
 
 #else
+    
 #include <3ds.h>
 #include <CakeBrah/source/libkhax/khax.h>
+
 #endif
 
-#include "gfx.h"
+#include "draw.h"
 #include "menu.h"
 #include "utility.h"
-#include "memory.h"
 
 #ifdef ARM9
 
@@ -115,14 +117,14 @@ void debug(const char *fmt, ...) {
             break;
 
         drawBg();
-        gfxDrawText(GFX_TOP, GFX_LEFT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
-        gfxDrawText(GFX_TOP, GFX_LEFT, &fontDefault, "Press (A) key to continue...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
+        drawText(GFX_TOP, GFX_LEFT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
+        drawText(GFX_TOP, GFX_LEFT, &fontDefault, "Press (A) key to continue...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
         if ( IS3DACTIVE )
         {
-            gfxDrawText(GFX_TOP, GFX_RIGHT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
-            gfxDrawText(GFX_TOP, GFX_RIGHT, &fontDefault, "Press (A) key to continue...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
+            drawText(GFX_TOP, GFX_RIGHT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
+            drawText(GFX_TOP, GFX_RIGHT, &fontDefault, "Press (A) key to continue...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
         }
-        gfxSwap();
+        swapFrameBuffers();
     }
 }
 
@@ -145,18 +147,18 @@ bool confirm(int confirmButton, const char *fmt, ...) {
         }
 
         drawBg();
-        gfxDrawText(GFX_TOP, GFX_LEFT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
-        gfxDrawText(GFX_TOP, GFX_LEFT, &fontDefault, "Press (B) key to cancel...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
-        gfxDrawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 84, "Press (%s) to confirm...",
+        drawText(GFX_TOP, GFX_LEFT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
+        drawText(GFX_TOP, GFX_LEFT, &fontDefault, "Press (B) key to cancel...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
+        drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 84, "Press (%s) to confirm...",
                      get_button(confirmButton));
         if ( IS3DACTIVE )
         {
-            gfxDrawText(GFX_TOP, GFX_RIGHT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
-            gfxDrawText(GFX_TOP, GFX_RIGHT, &fontDefault, "Press (B) key to cancel...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
-            gfxDrawTextf(GFX_TOP, GFX_RIGHT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 84, "Press (%s) to confirm...",
+            drawText(GFX_TOP, GFX_RIGHT, &fontDefault, s, MENU_MIN_X + 16, MENU_MIN_Y + 16);
+            drawText(GFX_TOP, GFX_RIGHT, &fontDefault, "Press (B) key to cancel...", MENU_MIN_X + 16, MENU_MIN_Y + 64);
+            drawTextf(GFX_TOP, GFX_RIGHT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 84, "Press (%s) to confirm...",
                          get_button(confirmButton));
         }
-        gfxSwap();
+        swapFrameBuffers();
     }
     return false;
 }
