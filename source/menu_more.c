@@ -4,11 +4,14 @@
 #include "arm9/source/hid.h"
 
 #else
+
 #include <3ds.h>
 #include <string.h>
 #include "menu_netloaderarm9.h"
+
 #endif
-#include "gfx.h"
+
+#include "draw.h"
 #include "utility.h"
 #include "loader.h"
 #include "menu.h"
@@ -150,5 +153,5 @@ static void draw() {
             break;
     }
 
-    gfxSwap();
+    swapFrameBuffers();
 }
