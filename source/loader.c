@@ -6,15 +6,16 @@
 
 #else
 
-#include "gfx.h"
+#include "arm9/source/common.h"
 #include "arm9/source/fatfs/ff.h"
 #include "stage2_bin.h"
+#include "memory.h"
 
 #endif
 
+#include "draw.h"
 #include "loader.h"
 #include "utility.h"
-#include "memory.h"
 
 #ifdef ARM9
 
@@ -79,7 +80,7 @@ int load_bin(char *path, long offset, binary_patch* patches, int patchesCount) {
     }
 
     // Start binary
-    gfxClear();
+    clearFrameBuffers();
 
     memcpy((void *) PTR_PAYLOAD_STAGE2, stage2_bin, stage2_bin_size);
     ((void (*)()) PTR_PAYLOAD_STAGE2)();
