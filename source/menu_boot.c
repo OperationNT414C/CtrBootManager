@@ -9,7 +9,7 @@
 #endif
 
 #include "loader.h"
-#include "gfx.h"
+#include "draw.h"
 #include "utility.h"
 #include "menu.h"
 #include "config.h"
@@ -43,7 +43,7 @@ int boot(int index) {
 #else
     int delay = config->autobootfix;
     while (aptMainLoop() && delay > 0) {
-        gfxSwap();
+        swapFrameBuffers();
         delay--;
     }
     return load(config->entries[index].path,
@@ -179,5 +179,5 @@ static void draw(int boot_index, time_t elapsed) {
         drawInfo("Show more options ...");
     }
 
-    gfxSwap();
+    swapFrameBuffers();
 }
