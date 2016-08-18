@@ -1,6 +1,7 @@
 #ifdef ARM9
 #include "arm9/source/common.h"
 #include "arm9/source/hid.h"
+#include "screeninit.h"
 #else
 #include <3ds.h>
 #endif
@@ -31,8 +32,13 @@ void keyLeft(int index) {
                 config->recovery = 11;
             break;
         case 3:
+        #ifdef ARM9
+            if (config->brightness < BRIGHTNESS_COUNT-1)
+                config->brightness++;
+        #else
             if (config->autobootfix > 0)
                 config->autobootfix--;
+        #endif
             break;
     }
 }
@@ -56,17 +62,20 @@ void keyRight(int index) {
                 config->recovery = 0;
             break;
         case 3:
+        #ifdef ARM9
+            if (config->brightness > 0)
+                config->brightness--;
+        #else
             config->autobootfix++;
+        #endif
             break;
     }
 }
 
 int menu_config() {
-#ifdef ARM9
-    int menu_count = 3, menu_index = 0;
-#else
+
     int menu_count = 4, menu_index = 0;
-#endif
+
     // key repeat timer
     time_t t_start = 0, t_end = 0, t_elapsed = 0;
 
@@ -127,11 +136,12 @@ int menu_config() {
         drawItem(menu_index == 0, 0, "Timeout:  %i", config->timeout);
         drawItem(menu_index == 1, 16, "Default:  %s", config->entries[config->index].title);
         drawItem(menu_index == 2, 32, "Recovery key:  %s", get_button(config->recovery));
-#ifndef ARM9
-        drawItem(menu_index == 3, 48, "Bootfix:  %i", config->autobootfix);
-        drawInfo("CtrBootManager v2.1.1");
+#ifdef ARM9
+        drawItem(menu_index == 3, 48, "Screen initialization brightness:  %i", BRIGHTNESS_COUNT-config->brightness);
+        drawInfo("CtrBootManager9 v2.2.0");    
 #else
-        drawInfo("CtrBootManager9 v2.1.1");    
+        drawItem(menu_index == 3, 48, "Bootfix:  %i", config->autobootfix);
+        drawInfo("CtrBootManager v2.2.0");
 #endif
 
         swapFrameBuffers();
