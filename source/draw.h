@@ -42,6 +42,8 @@ void drawTextN(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, u16 l
 
 void drawTextf(gfxScreen_t screen, gfx3dSide_t side, font_s *f, s16 x, s16 y, const char *fmt, ...);
 
+void drawImage(gfxScreen_t screen, gfx3dSide_t side, u8* img, bool rgba, u16 w, u16 h, s16 x, s16 y, char a);
+
 void fillColor(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[3]);
 
 void fillColorGradient(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColorStart[3], u8 rgbColorEnd[3]);
