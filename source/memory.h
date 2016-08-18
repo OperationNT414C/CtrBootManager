@@ -7,17 +7,18 @@
 
 #define PTR_TOP_SCREEN          (u8*)(*(u32*)0x23FFFE00)
 #define PTR_BOT_SCREEN          (u8*)(*(u32*)0x23FFFE08)
-#define PTR_TOP_SCREEN_BUF      (u8*)(0x2507E900)
-#define PTR_BOT_SCREEN_BUF      (u8*)(0x250C4E00)
-#define PTR_TOP_BG              (u8*)(0x25000000)
-#define PTR_BOT_BG              (u8*)(0x25046500)
-#define PTR_CFG                 (u8*)(0x25200000)
-#define PTR_PICKER              (u8*)(0x25210000)
-#define PTR_PICKER_FILE         (u8*)(0x25220000)
-#define PTR_CFG_TMP             (u8*)(0x25230000)
-#define PTR_ANIM                (u8*)(0x25240000)
-#define PTR_MOVIE_COMP          (u8*)(0x25250000)
-#define PTR_MOVIE_LOOP          (u8*)(0x25360000)
+#define PTR_TOP_SCREEN_BUF      (u8*)(0x25000000)
+#define PTR_BOT_SCREEN_BUF      (u8*)(0x25046500)
+#define PTR_TOP_BG              (u8*)(0x2507E900)
+#define PTR_BOT_BG              (u8*)(0x250DC500)
+#define PTR_CFG                 (u8*)(0x25130000)
+#define PTR_PICKER              (u8*)(0x25140000)
+#define PTR_PICKER_FILE         (u8*)(0x25150000)
+#define PTR_CFG_TMP             (u8*)(0x25160000)
+#define PTR_ANIM                (u8*)(0x25170000)
+#define PTR_MOVIE_COMP          (u8*)(0x25180000)
+#define PTR_DYNAMIC_MEM_START   (u8*)(0x25290000)
+
 
 #define PTR_PAYLOAD_MAIN        0x23F00000
 #define PTR_PAYLOAD_MAIN_DATA   0x26000000
