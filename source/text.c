@@ -52,8 +52,8 @@ int drawCharacter(u8 *fb, font_s *f, char c, s16 x, s16 y, u16 w, u16 h) {
     }
     else if ( a > 0 )
     {
-        float alpha = (float)a / 255.f;
-        float one_minus_alpha = 1.f - alpha;
+        int alpha = a;
+        int one_minus_alpha = 255-alpha;
 
         for (i = 0; i < cd->w; i++) {
             charData += cyo;
@@ -63,9 +63,9 @@ int drawCharacter(u8 *fb, font_s *f, char c, s16 x, s16 y, u16 w, u16 h) {
                     u8 blend[3] = { (fb[0] * (0xFF - v) + (b * v)) >> 8,
                                     (fb[1] * (0xFF - v) + (g * v)) >> 8,
                                     (fb[2] * (0xFF - v) + (r * v)) >> 8 };
-                    fb[0] = (u8)(alpha*blend[0]+one_minus_alpha*(float)fb[0]);
-                    fb[1] = (u8)(alpha*blend[1]+one_minus_alpha*(float)fb[1]);
-                    fb[2] = (u8)(alpha*blend[2]+one_minus_alpha*(float)fb[2]);
+                    fb[0] = (u8)((alpha*blend[0]+one_minus_alpha*fb[0])/255);
+                    fb[1] = (u8)((alpha*blend[1]+one_minus_alpha*fb[1])/255);
+                    fb[2] = (u8)((alpha*blend[2]+one_minus_alpha*fb[2])/255);
                 }
                 fb += 3;
             }
