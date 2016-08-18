@@ -16,6 +16,7 @@
 #ifdef ARM9
 
 u8 *gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16 *width, u16 *height) {
+    //WARNING: width and height must stay inverted to simulate 3DSX version behavior!
     if (screen == GFX_TOP) {
         if (width) *width = 240;
         if (height) *height = 400;
@@ -43,12 +44,12 @@ void drawPixelAlpha(int x, int y, char r, char g, char b, char a, u8 *screen) {
 
     u32 v = (height - 1 - y + x * height) * 3;
 
-    float alpha = (float)a / 255.f;
-	float one_minus_alpha = 1.f - alpha;
-
-	screen[v + 0] = (u8)(alpha*b+one_minus_alpha*(float)screen[v + 0]);
-	screen[v + 1] = (u8)(alpha*g+one_minus_alpha*(float)screen[v + 1]);
-	screen[v + 2] = (u8)(alpha*r+one_minus_alpha*(float)screen[v + 2]);
+    int alpha = a;
+    int one_minus_alpha = 255-alpha;
+    
+    screen[v + 0] = (u8)((alpha*b+one_minus_alpha*screen[v + 0])/255);
+    screen[v + 1] = (u8)((alpha*g+one_minus_alpha*screen[v + 1])/255);
+    screen[v + 2] = (u8)((alpha*a+one_minus_alpha*screen[v + 2])/255);
 }
 
 void drawLine(gfxScreen_t screen, gfx3dSide_t side, int x1, int y1, int x2, int y2, char r, char g, char b, char a) {
@@ -120,6 +121,58 @@ void drawTextN(gfxScreen_t screen, gfx3dSide_t side, font_s *f, char *str, u16 l
     drawStringN(fbAdr, f, str, length, x, 240 - y, fbHeight, fbWidth);
 }
 
+void drawImage(gfxScreen_t screen, gfx3dSide_t side, u8* img, bool rgba, u16 w, u16 h, s16 x, s16 y, char a)
+{
+    u16 fbWidth, fbHeight;
+    u8 *fbAdr = gfxGetFramebuffer(screen, side, &fbWidth, &fbHeight);
+    
+    int imax = w;
+    if (imax+x > fbHeight)
+        imax = fbHeight-x;
+
+    int jmax = h;
+    if (jmax+y > fbWidth)
+        jmax = fbWidth-y;
+
+    int i, j;
+    if ( rgba )
+    {
+        for (i = 0; i < imax; i++)
+        {
+            u8* imgAdr = img + 4*i*h;
+            u8* rowFbAdr = fbAdr + 3*((x+i)*fbWidth + y);
+            for (j = 0; j < jmax; j++)
+            {
+                int alpha = ((int)a*imgAdr[0]) / 255;
+                int one_minus_alpha = 255-alpha;
+                rowFbAdr[0] = (u8)((alpha*imgAdr[1]+one_minus_alpha*rowFbAdr[0])/255);
+                rowFbAdr[1] = (u8)((alpha*imgAdr[2]+one_minus_alpha*rowFbAdr[1])/255);
+                rowFbAdr[2] = (u8)((alpha*imgAdr[3]+one_minus_alpha*rowFbAdr[2])/255);
+                imgAdr += 4;
+                rowFbAdr += 3;
+            }
+        }
+    }
+    else
+    {
+        int alpha = a;
+        int one_minus_alpha = 255-a;
+        for (i = 0; i < imax; i++)
+        {
+            u8* imgAdr = img + 3*i*h;
+            u8* rowFbAdr = fbAdr + 3*((x+i)*fbWidth + y);
+            for (j = 0; j < jmax; j++)
+            {
+                rowFbAdr[0] = (u8)((alpha*imgAdr[0]+one_minus_alpha*rowFbAdr[0])/255);
+                rowFbAdr[1] = (u8)((alpha*imgAdr[1]+one_minus_alpha*rowFbAdr[1])/255);
+                rowFbAdr[2] = (u8)((alpha*imgAdr[2]+one_minus_alpha*rowFbAdr[2])/255);
+                imgAdr += 3;
+                rowFbAdr += 3;
+            }
+        }
+    }
+}
+
 void fillColor(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[3]) {
     u16 fbWidth, fbHeight;
     u8 *fbAdr = gfxGetFramebuffer(screen, side, &fbWidth, &fbHeight);
@@ -136,7 +189,7 @@ void fillColor(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColor[3]) {
 void fillColorGradient(gfxScreen_t screen, gfx3dSide_t side, u8 rgbColorStart[3], u8 rgbColorEnd[3]) {
     u16 fbWidth, fbHeight;
     u8 *fbAdr = gfxGetFramebuffer(screen, side, &fbWidth, &fbHeight);
-    u8 colorLine[1200]; // Avoid dynamic "fbWidth*3", illogical crash on 3DSX version with top right buffer
+    u8 colorLine[720]; // Avoid dynamic "fbWidth*3", illogical crash on 3DSX version with top right buffer
 
     //TODO : optimize; use GX command ?
     // Avoid float operations, illogical crash on 3DSX version with top right buffer
@@ -192,17 +245,18 @@ void _drawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbaColor[4], s16 x
 	}
 	else if ( rgbaColor[3] > 0 )
 	{
-		float alpha = (float)rgbaColor[3] / 255.f;
-		float one_minus_alpha = 1.f - alpha;
+        int alpha = rgbaColor[3];
+        int one_minus_alpha = 255-alpha;
+
 		int i, j;
 		fbAdr += fbWidth * 3 * y;
 		for (j = 0; j < height; j++)
 		{
 			for (i = 0; i < width; i++)
 			{
-				fbAdr[3*(i+x)+0] = (u8)(alpha*(float)rgbaColor[2]+one_minus_alpha*(float)fbAdr[3*(i+x)+0]);
-				fbAdr[3*(i+x)+1] = (u8)(alpha*(float)rgbaColor[1]+one_minus_alpha*(float)fbAdr[3*(i+x)+1]);
-				fbAdr[3*(i+x)+2] = (u8)(alpha*(float)rgbaColor[0]+one_minus_alpha*(float)fbAdr[3*(i+x)+2]);	
+                fbAdr[3*(i+x)+0] = (u8)((alpha*rgbaColor[2]+one_minus_alpha*fbAdr[3*(i+x)+0])/255);
+                fbAdr[3*(i+x)+1] = (u8)((alpha*rgbaColor[1]+one_minus_alpha*fbAdr[3*(i+x)+1])/255);
+                fbAdr[3*(i+x)+2] = (u8)((alpha*rgbaColor[0]+one_minus_alpha*fbAdr[3*(i+x)+2])/255);
 			}
 			fbAdr += fbWidth * 3;
 		}
