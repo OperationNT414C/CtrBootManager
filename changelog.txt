@@ -1,7 +1,7 @@
 2.2.0
 
 Add "brightness" property for screen-init (only used if CtrBootManager must initialize the screen)
-The font used on bottom screen can have a different color ("font3" property in "[theme]" and "[animation]" categories.
+The font used on bottom screen can have a different color ("font3" property in "[theme]" and "[animation]" categories).
 Add support for transparent background images (the background color will be displayed on transparent zones)
 - "bgImgTopAlpha", "bgImgTop3DAlpha" and "bgImgBotAlpha" keywords in "[theme]" category to set a background image as transparent
 Add background images fade-in effect, activated by "bgImgTopFadeIn" and "bgImgBotFadeIn" properties in "[animation]" category
