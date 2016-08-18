@@ -1,3 +1,136 @@
+2.2.0
+
+Add "brightness" property for screen-init (only used if CtrBootManager must initialize the screen)
+The font used on bottom screen can have a different color ("font3" property in "[theme]" and "[animation]" categories.
+Add support for transparent background images (the background color will be displayed on transparent zones)
+- "bgImgTopAlpha", "bgImgTop3DAlpha" and "bgImgBotAlpha" keywords in "[theme]" category to set a background image as transparent
+Add background images fade-in effect, activated by "bgImgTopFadeIn" and "bgImgBotFadeIn" properties in "[animation]" category
+Add the possibility to have more than 11 boot entries (but "File browser" entry add feature cannot put more than the previous entries rounded up to a 12 multiplier)
+Thumbnail support for each boot entry, new keywords in "[entry]" categories:
+- "thumbTop", "thumbTop3D" and "thumbBot" for thumbnail path for each screen
+- "thumbTopParams", "thumbTop3DParams" and "thumbBotParams" for thumbnail parameters, format "posX:posY:sizeX:sizeY:alpha"
+
+2.1.1
+
+Some code refactoring to avoid confusion with "gfx" functions: fix 3DSX version crash on CFW start from MenuHax
+
+2.1.0
+
+Fix loops count issue while reading the configuration file (always considered as infinite)
+Fix uncompressed movie loops issue when the loop doesn't start from the begining and the stream type was file
+3D movie/background image support for 3DSX version
+
+2.0.0
+
+Fix some random issues with "compressed_memory" and "file" stream types with compressed movies
+Documentation and Wiki: https://github.com/OperationNT414C/CtrBootManager/wiki/CtrBootManager-setup
+
+V10-3DSX
+
+Changes to support the 3DSX version with new animation and movie features
+It seems 3DSX version has a bug with compressed movies when property "loopStreamType=compressed_memory" is active.
+
+V10
+
+Remove "Anim" part from keywords in "[animation]" category (the category should be enough to avoid confusion)
+
+The "[movie]" category is removed, 2 new categories have been created to replace it: "[topMovie]" and "[bottomMovie]"
+So keywords are renamed:
+- "movieTop" and "movieBot" => "path"
+- "movieTopCompress" and "movieBotCompress" => "compression"
+- "movieTopLoop" and "movieBotLoop" => "loopCount"
+- "movieTopLoopReverse" and "movieBotLoopReverse" => "loopReverse"
+- "movieTopLoopStart" and "movieBotLoopStart" => "loopStartFrame"
+- "movieTopTimeOnLoopStart" and "movieBotTimeOnLoopStart" => "delayOnLoopStart"
+- "movieTopLoopEnd" and "movieBotLoopEnd" => "loopEndFrame"
+- "movieTopTimeOnLoopEnd" and "movieBotTimeOnLoopEnd" => "delayOnLoopEnd"
+
+More explicit values has been added for some properties:
+- For "compression" property: "QuickLZ"
+- For "loopCount" property: "infinite" and "INFINITE" (set a negative value)
+- For "loopReverse" property: "yes" and "YES" set a not null value, "no" and "NO" set a null value
+
+A new property "loopStreamType" has been added to manage how the loop is stored:
+- "loopStreamType=file" (or "loopStreamType=0"): the movie file stays opened and loop will be permanently read from file
+- "loopStreamType=memory" (or "loopStreamType=1"): the movie file is close and all frames required for loop are kept in memory
+- "loopStreamType=compressed_memory" (or "loopStreamType=2"): only for compressed movies, the file content for loop is kept in memory and decompressed again on each loop
+Now, the default loop stream mode is "file" to prevent any crash due memory usage.
+
+Add the CtrBootManager current version display in "Settings" menu
+
+V9
+
+Movies support, new category "movie" and new keywords:
+- "movieTop" and "movieBot": movie pathes
+- "movieTopCompress" and "movieBotCompress": declare a movie as compressed (QuickLZ compression)
+- "movieTopLoop" and "movieBotLoop": set the number of loops to do (negative means infinite)
+- "movieTopLoopReverse" and "movieBotLoopReverse": if active, the loop will be played in reverse to ensure movie continuity
+- "movieTopLoopStart" and "movieBotLoopStart": set up the first movie frame for loop
+- "movieTopTimeOnLoopStart" and "movieBotTimeOnLoopStart": set up the "freeze time" on loop first frame
+- "movieTopLoopEnd" and "movieBotLoopEnd": set up the last movie frame for loop (negative means the movie end frame)
+- "movieTopTimeOnLoopEnd" and "movieBotTimeOnLoopEnd": set up the "freeze time" on loop last frame
+WARNING: Loop is fully stored in memory as an uncompressed movie. So if one loop contains too much frames, you WILL crash.
+To avoid this issue, please control carefully the loop number of frames particularly with compressed videos.
+You can clamp your loop size with "movieXxxLoopStart" and "movieXxxLoopEnd" to avoid any issue. By default, the whole movie is put in loop.
+For the top movie, the loop size will cost {(movieTopLoopEnd-movieTopLoopStart) * 288000} bytes.
+For the bottom movie, the loop size will cost {(movieBotLoopEnd-movieBotLoopStart) * 230400} bytes.
+Crashes occurs beyond 24MB, so do the maths!
+
+Add some space for CtrBootManager9 chainloading with binary patch:
+<< patchMemSearch=2F61396C682E63666700;
+   patchMemOverwriteStr=/directory/other_a9lh.cfg;
+   patchOccurence=1; >>
+
+V8
+Rename "globalFadeIn" to "menuFadeIn"
+Move all animations keywords under a new category "animation"
+Add security checks to avoid configuration corruption if there are more than 11 entries or more than 4 patches for one entry
+Add key left and right to speed up selection move in menus (particularly useful for File Browser)
+
+V7
+Add animation system for colors and fade in setup
+New keywords added to support animations and fade in effect:
+- "bgTop1Anim", "bgTop2Anim", "bgBottomAnim" (syntax example: "1:-1:FFFFFF")
+- "highlightAnim", "bordersAnim", "font1Anim", "font2Anim" (syntax example: "1:-1:FFFFFF" or "1:-1:FFFFFF7F")
+- "globalFadeIn" (syntax example: "1:-1"
+Syntax for "*object*Anim" keyword is "objectAnim=X:Y:Z;" where:
+- X as positive integer: the animation time in frame for one way (consider 2X for animation round-trip)
+- Y as integer: the animation offset (if 2 animations has the same X value, this Y value will allow a shift between them)
+- Z as a color in hexadecimal (3 bytes for color without transparency, mandatory for background; 4 bytes with transparency)
+Syntax for fade in effect is "globalFadeIn=X:Y;" where:
+- X as positive integer: the fade-in effect duration in frame
+- Y as an integer: the time to wait before starting the fade-in effect (can be negative to start directly in the middle of the effect)
+
+V6
+Minor fix for background load
+Default offset 0x12000 is also added if the binary is directly started for File Browser
+
+V5
+Update fatfs to fix File Browser illogical crashes (for example, if the background was not set to black)
+Add a default offset at 0x12000 if a ".dat" file is added to entries through File Browser
+
+V4
+Displays the number of binary patches for current entry (if there is at least one patch)
+Add the possibility to set transparency for borders and fonts
+Fix a crash on start if no config file exists
+
+V3
+Add the possibility of binary patching, limited to 4 for each entry
+New keywords for config file to support binary patching:
+- "patchMemSearch" represents the searched pattern in hexadecimal values (730064006D0063003A002F00 => sdmc:/ with null value between each letter)
+- "patchMemOverwrite" represents the values which will overwrite the found pattern (in hexadecimal values)
+- "patchMemOverwriteStr" represents a string which will overwrite the pattern (it replaces "patchMemOverwrite" usage)
+- "patchMemOverwriteWStr" represents a string with wide characters (null value between each character) which will overwrite the pattern (it replaces "patchMemOverwrite" usage)
+- "patchOccurence" represents the occurence to modify: if the pattern can be found multiple times in the loaded binary file, only the indicated occurence will be overwritten (0 means all occurences will be overwritten)
+A patch of an entry MUST always end with "patchOccurence" (it is like an entry which must always end with "key").
+
+V2
+Add screen-init support
+
+V1
+Fix offset write issue and crash when a background was added
+Add the possibility to set transparency for highlight
+
 1.0: add boot menu entry from the file manager (X)
 1.0: remove boot menu entry from boot menu (X)
 1.0: add a few more help/information to the bottom screen
