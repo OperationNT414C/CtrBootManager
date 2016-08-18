@@ -26,6 +26,7 @@
 void ioDelay(uint32_t val);
 
 #else
+
 FS_Archive sdmcArchive;
 extern void __appExit();
 
@@ -37,6 +38,7 @@ void openSDArchive() {
 void closeSDArchive() {
     FSUSER_CloseArchive(&sdmcArchive);
 }
+
 #endif
 
 void svcSleep(u32 millis) {
@@ -360,6 +362,13 @@ void poweroff() {
 
 bool aptMainLoop() {
     return true;
+}
+
+void* memAlloc(unsigned int iSize) {
+    static u8* nextFreeMem = PTR_DYNAMIC_MEM_START;
+    void* retPtr = (void*)nextFreeMem;
+    nextFreeMem += iSize;
+    return retPtr;
 }
 
 #endif
