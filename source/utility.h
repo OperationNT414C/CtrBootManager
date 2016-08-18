@@ -9,7 +9,10 @@ extern "C" {
 
 bool aptMainLoop();
 
+void* memAlloc(unsigned int iSize);
+
 #else
+
 #include "descriptor.h"
 
 typedef struct menuEntry_s {
@@ -21,6 +24,7 @@ typedef struct menuEntry_s {
 void openSDArchive();
 
 void closeSDArchive();
+
 #endif
 
 bool fileExists(char *path);
