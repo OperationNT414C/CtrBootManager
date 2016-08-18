@@ -63,7 +63,6 @@ int main() {
     *(u32 *) 0x10000020 = 0x340;
     FATFS fs;
     f_mount(&fs, "0:", 0);
-	initScreens();
 #else
     if (netloader_init() != 0) {
         // fix SOC_Initialize
@@ -81,12 +80,18 @@ int main() {
 #endif
     animInit();
     if (configInit() != 0 || config->count <= 0) { // recovery
+    #ifdef ARM9
+    	initScreens(config->brightness);
+    #endif
         animSetup();
         while (aptMainLoop()) {
             if (menu_more() == 0)
                 break;
         }
     } else {
+    #ifdef ARM9
+    	initScreens(config->brightness);
+    #endif
         animSetup();
         while (aptMainLoop()) {
             if (menu_boot() == 0)
