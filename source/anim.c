@@ -68,7 +68,7 @@ void movieLoopSetup(movie_state_s* movie)
 
 
 #ifdef ARM9
-void movieSetup(movie_config_s* mvConf, movie_state_s* movie, void* filePtr, comp_manager_s* compPtr, void* streamPtr)
+void movieSetup(movie_config_s* mvConf, movie_state_s* movie, void* filePtr, comp_manager_s* compPtr)
 #else
 void movieSetup(movie_config_s* mvConf, movie_state_s* movie)
 #endif
@@ -171,7 +171,7 @@ void movieSetup(movie_config_s* mvConf, movie_state_s* movie)
     }
     
 #ifdef ARM9
-    movie->loopStream = streamPtr;
+    movie->loopStream = (char*)memAlloc(movie->loopStreamSize);
 #else
     movie->loopStream = (char*)malloc(movie->loopStreamSize);
 #endif
@@ -190,6 +190,10 @@ void animSetup()
     memcpy(anim->borders, config->borders, sizeof(u8[4]));
     memcpy(anim->fntDef, config->fntDef, sizeof(u8[4]));
     memcpy(anim->fntSel, config->fntSel, sizeof(u8[4]));
+    memcpy(anim->fntBot, config->fntBotActive ? config->fntBot : config->fntDef, sizeof(u8[4]));
+    anim->thumbFade = 0xFF;
+    anim->imgTopFade = 0xFF;
+    anim->imgBotFade = 0xFF;
     
 #ifdef ARM9
     comp_manager_s* topComp = (comp_manager_s*)PTR_MOVIE_COMP;
@@ -201,9 +205,8 @@ void animSetup()
     botComp->frame_comp = BOT_COMP_COMP_FRAME_PTR;
 
     int fileHandleSize = getFileHandleSize();
-    movieSetup(&config->movieTop, &anim->topMovie, PTR_ANIM+sizeof(anim_state_s), topComp, PTR_MOVIE_LOOP);
-    movieSetup(&config->movieBot, &anim->botMovie, PTR_ANIM+sizeof(anim_state_s)+fileHandleSize,
-               botComp, PTR_MOVIE_LOOP+anim->topMovie.loopStreamSize);
+    movieSetup(&config->movieTop, &anim->topMovie, PTR_ANIM+sizeof(anim_state_s), topComp);
+    movieSetup(&config->movieBot, &anim->botMovie, PTR_ANIM+sizeof(anim_state_s)+fileHandleSize, botComp);
 #else
     movieSetup(&config->movieTop, &anim->topMovie);
     movieSetup(&config->movieTop3D, &anim->top3DMovie);
@@ -214,8 +217,10 @@ void animSetup()
 
     if ( config->bgTop1AnimTime > 0 || config->bgTop2AnimTime > 0 || config->bgBotAnimTime > 0
       || config->highlightAnimTime > 0 || config->bordersAnimTime > 0
-      || config->fntDefAnimTime > 0 || config->fntSelAnimTime > 0
-      || config->menuFadeInTime > 0 || config->menuFadeInTimeStart != 0 )
+      || config->fntDefAnimTime > 0 || config->fntSelAnimTime > 0 || config->fntBotAnimTime > 0
+      || config->menuFadeInTime > 0 || config->menuFadeInTimeStart != 0
+      || config->bgImgTopFadeInTime > 0 || config->bgImgTopFadeInTimeStart != 0
+      || config->bgImgBotFadeInTime > 0 || config->bgImgBotFadeInTimeStart != 0 )
     {
         anim->active = 1;
         incrementAnimTime();
@@ -246,6 +251,17 @@ void setMergedColorAlpha(float mergeVal, u8 color1[4], u8 color2[4], u8 finalCol
     finalColor[3] = (u8)(oneMinusMerge*color1[3]+mergeVal*color2[3]);
 }
 
+void computeMenuColor(u8 color[4], u8 colorAnim[4], int animTime, int animTimeStart, u8 finalColor[4])
+{
+    if ( animTime > 0 )
+    {
+        float merge = computeMerge(anim->timer, animTime, animTimeStart);
+        setMergedColorAlpha(merge, color, colorAnim, finalColor);
+    }
+    else if ( anim->timer > config->menuFadeInTimeStart )
+        memcpy(finalColor, color, sizeof(u8[4]));
+}
+
 void incrementAnimTime()
 {
     if (!anim->active)
@@ -269,38 +285,25 @@ void incrementAnimTime()
         setMergedColor(merge, config->bgBot, config->bgBotAnimColor, anim->bgBot);
     }
 
-    if ( config->highlightAnimTime > 0 )
-    {
-        float merge = computeMerge(anim->timer, config->highlightAnimTime, config->highlightAnimTimeStart);
-        setMergedColorAlpha(merge, config->highlight, config->highlightAnimColor, anim->highlight);
-    }
-    else if ( anim->timer > config->menuFadeInTimeStart )
-        memcpy(anim->highlight, config->highlight, sizeof(u8[4]));
+    computeMenuColor(config->highlight, config->highlightAnimColor,
+                     config->highlightAnimTime, config->highlightAnimTimeStart, anim->highlight);
 
-    if ( config->bordersAnimTime > 0 )
-    {
-        float merge = computeMerge(anim->timer, config->bordersAnimTime, config->bordersAnimTimeStart);
-        setMergedColorAlpha(merge, config->borders, config->bordersAnimColor, anim->borders);
-    }
-    else if ( anim->timer > config->menuFadeInTimeStart )
-        memcpy(anim->borders, config->borders, sizeof(u8[4]));
-    
-    if ( config->fntDefAnimTime > 0 )
-    {
-        float merge = computeMerge(anim->timer, config->fntDefAnimTime, config->fntDefAnimTimeStart);
-        setMergedColorAlpha(merge, config->fntDef, config->fntDefAnimColor, anim->fntDef);
-    }
-    else if ( anim->timer > config->menuFadeInTimeStart )
-        memcpy(anim->fntDef, config->fntDef, sizeof(u8[4]));
+    computeMenuColor(config->borders, config->bordersAnimColor,
+                     config->bordersAnimTime, config->bordersAnimTimeStart, anim->borders);
 
-    if ( config->fntSelAnimTime > 0 )
+    computeMenuColor(config->fntDef, config->fntDefAnimColor,
+                     config->fntDefAnimTime, config->fntDefAnimTimeStart, anim->fntDef);
+
+    computeMenuColor(config->fntSel, config->fntSelAnimColor,
+                     config->fntSelAnimTime, config->fntSelAnimTimeStart, anim->fntSel);
+
+    if ( config->fntBotActive )
     {
-        float merge = computeMerge(anim->timer, config->fntSelAnimTime, config->fntSelAnimTimeStart);
-        setMergedColorAlpha(merge, config->fntSel, config->fntSelAnimColor, anim->fntSel);
+        computeMenuColor(config->fntBot, config->fntBotAnimColor,
+                         config->fntBotAnimTime, config->fntBotAnimTimeStart, anim->fntBot);
     }
-    else if ( anim->timer > config->menuFadeInTimeStart )
-        memcpy(anim->fntSel, config->fntSel, sizeof(u8[4]));
     
+    bool checkStopAnim = false;
     if ( anim->timer >= config->menuFadeInTimeStart )
     {
         int fadeInTime = anim->timer - config->menuFadeInTimeStart;
@@ -312,12 +315,10 @@ void incrementAnimTime()
             anim->borders[3] = (u8)(fadeIn*(float)anim->borders[3]);
             anim->fntDef[3] = (u8)(fadeIn*(float)anim->fntDef[3]);
             anim->fntSel[3] = (u8)(fadeIn*(float)anim->fntSel[3]);
+            anim->fntBot[3] = (u8)(fadeIn*(float)anim->fntBot[3]);
+            anim->thumbFade = (u8)(fadeIn*255.f);
             
-            if ( fadeInTime == config->menuFadeInTime && config->bgTop1AnimTime == 0
-              && config->bgTop2AnimTime == 0 && config->bgBotAnimTime == 0
-              && config->highlightAnimTime == 0 && config->bordersAnimTime == 0
-              && config->fntDefAnimTime == 0 && config->fntSelAnimTime == 0 )
-                anim->active = 0;
+            checkStopAnim = ( fadeInTime == config->menuFadeInTime );
         }
     }
     else
@@ -326,7 +327,43 @@ void incrementAnimTime()
         anim->borders[3] = 0x00;
         anim->fntDef[3] = 0x00;
         anim->fntSel[3] = 0x00;
+        anim->fntBot[3] = 0x00;
+        anim->thumbFade = 0x00;
     }
+
+    if ( anim->timer >= config->bgImgTopFadeInTimeStart )
+    {
+        int fadeInTime = anim->timer - config->bgImgTopFadeInTimeStart;
+        if ( fadeInTime <= config->bgImgTopFadeInTime )
+        {
+            float fadeIn = (config->bgImgTopFadeInTime > 0) ? (float)fadeInTime / (float)config->bgImgTopFadeInTime : 1.f;
+            anim->imgTopFade = (u8)(fadeIn*255.f);
+            checkStopAnim = ( fadeInTime == config->bgImgTopFadeInTime );
+        }
+    }
+    else
+        anim->imgTopFade = 0x00;
+    
+    if ( anim->timer >= config->bgImgBotFadeInTimeStart )
+    {
+        int fadeInTime = anim->timer - config->bgImgBotFadeInTimeStart;
+        if ( fadeInTime <= config->bgImgBotFadeInTime )
+        {
+            float fadeIn = (config->bgImgBotFadeInTime > 0) ? (float)fadeInTime / (float)config->bgImgBotFadeInTime : 1.f;
+            anim->imgBotFade = (u8)(fadeIn*255.f);
+            checkStopAnim = ( fadeInTime == config->bgImgBotFadeInTime );
+        }
+    }
+    else
+        anim->imgBotFade = 0x00;
+    
+    if ( checkStopAnim && config->bgTop2AnimTime == 0 && config->bgBotAnimTime == 0
+      && config->highlightAnimTime == 0 && config->bordersAnimTime == 0
+      && config->fntDefAnimTime == 0 && config->fntSelAnimTime == 0 && config->fntBotAnimTime == 0
+      && anim->timer >= config->menuFadeInTimeStart+config->menuFadeInTime
+      && anim->timer >= config->bgImgTopFadeInTimeStart+config->bgImgTopFadeInTime
+      && anim->timer >= config->bgImgBotFadeInTimeStart+config->bgImgBotFadeInTime )
+        anim->active = 0;
 
     anim->timer++;
 }
