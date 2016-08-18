@@ -13,6 +13,7 @@
 #include "utility.h"
 #include "menu.h"
 #include "config.h"
+#include "anim.h"
 
 static bool timer = true;
 
@@ -140,11 +141,50 @@ int menu_boot() {
     return 0;
 }
 
+void drawThumbnail(gfxScreen_t screen, gfx3dSide_t side, thumbnail_s* thumbnail)
+{
+    if ( NULL == thumbnail->imgBuff )
+        return;
+    if ( 0 == thumbnail->loaded )
+    {
+        // Lazy image load
+        size_t size = fileSize(thumbnail->path);
+        if ( size == -1 || size == 0 ) {
+            thumbnail->loaded = -1;
+            return;
+        }
+
+        size_t maxsize = thumbnail->sizeX * thumbnail->sizeY * (thumbnail->isRGBA?4:3);
+        if (size > maxsize)
+            size = maxsize;
+        
+        if (fileRead(thumbnail->path, thumbnail->imgBuff, size) != 0) {
+            thumbnail->loaded = -1;
+            return;
+        }
+        
+        thumbnail->loaded = 1;
+    }
+    if ( thumbnail->loaded <= 0 )
+        return;
+
+    drawImage(screen, side, thumbnail->imgBuff, thumbnail->isRGBA, thumbnail->sizeX, thumbnail->sizeY, thumbnail->posX, thumbnail->posY, anim->thumbFade);
+}
+
 static void draw(int boot_index, time_t elapsed) {
 
     int i = 0;
 
     drawBg();
+    
+    if ( boot_index < config->count )
+    {
+        boot_entry_s* selEntry = &config->entries[boot_index];
+        drawThumbnail(GFX_TOP, GFX_LEFT, &selEntry->thumbTop);
+        if ( IS3DACTIVE )
+            drawThumbnail(GFX_TOP, GFX_RIGHT, &selEntry->thumbTop3D);
+        drawThumbnail(GFX_BOTTOM, GFX_LEFT, &selEntry->thumbBot);
+    }
 
     if (!timer) {
         drawTitle("*** Select a boot entry ***");
@@ -152,31 +192,44 @@ static void draw(int boot_index, time_t elapsed) {
         drawTitle("*** Booting %s in %i ***", config->entries[boot_index].title, config->timeout - elapsed);
     }
 
-    for (i = 0; i < config->count; i++) {
-        drawItem(i == boot_index, 16 * i, config->entries[i].title);
-        if (i == boot_index) {
+    int entriesStart = ENTRIES_COUNT_INC * (boot_index / ENTRIES_COUNT_INC);
+    int entriesEnd = entriesStart + ENTRIES_COUNT_INC;
+    if ( entriesEnd > config->count )
+        entriesEnd = config->count;
+    int displayedEntries = entriesEnd - entriesStart;
+    
+    for (i = 0; i < displayedEntries; i++) {
+        boot_entry_s* curEntry = &config->entries[entriesStart+i];
+        bool selected = (entriesStart+i == boot_index);
+        drawItem(selected, 16 * i, curEntry->title);
+        if (selected) {
         #ifdef ARM9
-            if ( config->entries[i].patchesCount > 0 )
+            if ( curEntry->patchesCount > 0 )
             {
                 drawInfo("Name: %s\nPath: %s\nOffset: 0x%lx\nPatches count: %d\n\nPress (A) to launch\nPress (X) to remove entry\n",
-                        config->entries[i].title,
-                        config->entries[i].path,
-                        config->entries[i].offset,
-                        config->entries[i].patchesCount);
+                        curEntry->title,
+                        curEntry->path,
+                        curEntry->offset,
+                        curEntry->patchesCount);
             }
             else
         #endif
             {
                 drawInfo("Name: %s\nPath: %s\nOffset: 0x%lx\n\n\nPress (A) to launch\nPress (X) to remove entry\n",
-                        config->entries[i].title,
-                        config->entries[i].path,
-                        config->entries[i].offset);
+                        curEntry->title,
+                        curEntry->path,
+                        curEntry->offset);
             }
         }
     }
-    drawItem(boot_index == config->count, 16 * i, "More...");
-    if (boot_index == config->count) {
-        drawInfo("Show more options ...");
+    
+    if ( i < ENTRIES_COUNT_INC )
+    {
+        bool selected = (boot_index == config->count);
+        drawItem(selected, 16 * i, "More...");
+        if (selected) {
+            drawInfo("Show more options ...");
+        }
     }
 
     swapFrameBuffers();
