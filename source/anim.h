@@ -50,6 +50,10 @@ typedef struct {
     u8 borders[4];
     u8 fntDef[4];
     u8 fntSel[4];
+    u8 fntBot[4];
+    u8 thumbFade;
+    u8 imgTopFade;
+    u8 imgBotFade;
     
     movie_state_s topMovie;
     movie_state_s top3DMovie;
