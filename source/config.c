@@ -7,6 +7,7 @@
 #include "ini.h"
 #include "config.h"
 #include "font.h"
+
 #ifdef ARM9
 #include "arm9/source/fatfs/ff.h"
 #include "utility.h"
@@ -277,6 +278,9 @@ void entryInit(boot_entry_s* entry)
     entry->key = -1;
     entry->offset = 0;
     entry->patchesCount = 0;
+    
+    entry->splashTop[0] = '\0';
+    entry->splashBot[0] = '\0';
 
     thumbnailInit(&entry->thumbTop, 400, 240);
     thumbnailInit(&entry->thumbTop3D, 400, 240);
@@ -339,6 +343,10 @@ static int handler(void *user, const char *section, const char *name,
             config->recovery = atoi(item);
         } else if (NAME_MATCH("default")) {
             config->index = atoi(item);
+        } else if (NAME_MATCH("splashTop")) {
+            strncpy(config->splashTopDef, item, 128);
+        } else if (NAME_MATCH("splashBot")) {
+            strncpy(config->splashBotDef, item, 128);
         }
     #ifdef ARM9
         else if (NAME_MATCH("brightness")) {
@@ -349,6 +357,24 @@ static int handler(void *user, const char *section, const char *name,
             config->autobootfix = atoi(item);
         }
     #endif
+    }
+
+    // password
+    if (SECTION_MATCH("password"))
+    {
+        if (NAME_MATCH("keys")) {
+            config->passSize = readIntValuesList(config->password, PASSWORD_MAX_SIZE, item);
+        } else if (NAME_MATCH("attempts")) {
+            config->passMaxAttempt = atoi(item);
+        } else if (NAME_MATCH("failPath")) {
+            strncpy(config->failPath, item, 128);
+        } else if (NAME_MATCH("failOffset")) {
+            config->failOffset = strtoul(item, NULL, 16);
+        } else if (NAME_MATCH("failImgTop")) {
+            strncpy(config->failSplashTop, item, 128);
+        } else if (NAME_MATCH("failImgBot")) {
+            strncpy(config->failSplashBot, item, 128);
+        }
     }
 
     // theme
@@ -442,6 +468,10 @@ static int handler(void *user, const char *section, const char *name,
             strncpy(entry->path, item, 128);
         } else if (NAME_MATCH("offset")) {
             entry->offset = strtoul(item, NULL, 16);
+        } else if (NAME_MATCH("splashTop")) {
+            strncpy(entry->splashTop, item, 128);
+        } else if (NAME_MATCH("splashBot")) {
+            strncpy(entry->splashBot, item, 128);
         } else if (NAME_MATCH("thumbTop")) {
             strncpy(entry->thumbTop.path, item, 128);
         } else if (NAME_MATCH("thumbTopParams")) {
@@ -583,7 +613,18 @@ int configInit() {
     config->brightness = 0;
     config->index = 0;
     config->recovery = 2;
-
+    
+    config->splashTopDef[0] = '\0';
+    config->splashBotDef[0] = '\0';
+    
+    config->password[0] = -1;
+    config->passSize = 0;
+    config->passMaxAttempt = 0;
+    config->failPath[0] = '\0';
+    config->failOffset = 0;
+    config->failSplashTop[0] = '\0';
+    config->failSplashBot[0] = '\0';
+    
 #ifdef ARM9
     config->entries = memAlloc(DEFAULT_ENTRIES_COUNT*sizeof(boot_entry_s));
 #else
@@ -618,8 +659,12 @@ int configInit() {
         }
     }
     
-    // Fix for fade in effect first frame
-    fontDefault.color[3] = 0x00;
+    int i = 0;
+    while ( i < config->passSize && config->password[i] >= 0 && config->password[i] <= MAX_KEY )
+        i++;
+    if ( i < PASSWORD_MAX_SIZE )
+        config->password[i] = -1;
+    config->passSize = i;
 
     loadBg(GFX_TOP, GFX_LEFT);
 #ifndef ARM9
@@ -652,6 +697,12 @@ int configAddEntry(char *title, char *path, long offset) {
     strncpy(entry->title, title, 64);
     strncpy(entry->path, path, 128);
     entry->offset = offset;
+    entry->patchesCount = 0;
+    entry->splashTop[0] = '\0';
+    entry->splashBot[0] = '\0';
+    thumbnailInit(&entry->thumbTop, 400, 240);
+    thumbnailInit(&entry->thumbTop3D, 400, 240);
+    thumbnailInit(&entry->thumbBot, 320, 240);
     config->count++;
     configSave();
 
@@ -710,10 +761,35 @@ void configSave() {
 #endif
     size += snprintf(cfg+size, 256, "timeout=%i;\n", config->timeout);
     size += snprintf(cfg+size, 256, "recovery=%i;\n", config->recovery);
-    size += snprintf(cfg+size, 256, "default=%i;\n\n", config->index);
+    size += snprintf(cfg+size, 256, "default=%i;\n", config->index);
+    if (config->splashTopDef[0] != '\0')
+        size += snprintf(cfg+size, 256, "splashTop=%s;\n", config->splashTopDef);
+    if (config->splashBotDef[0] != '\0')
+        size += snprintf(cfg+size, 256, "splashBot=%s;\n", config->splashBotDef);
+
+    // password section
+    if ( config->passSize > 0 )
+    {
+        size += snprintf(cfg+size, 256, "\n[password]\n");
+        size += snprintf(cfg+size, 256, "keys=");
+        for ( int i = 0 ; i < config->passSize-1 ; i++ )
+            size += snprintf(cfg+size, 256, "%i:", config->password[i]);
+        size += snprintf(cfg+size, 256, "%i;\n", config->password[config->passSize-1]);
+        if ( config->passMaxAttempt > 0 )
+            size += snprintf(cfg+size, 256, "attempts=%d;\n", config->passMaxAttempt);
+        if ( config->failPath[0] != '\0' )
+        {
+            size += snprintf(cfg+size, 256, "failPath=%s;\n", config->failPath);
+            size += snprintf(cfg+size, 256, "failOffset=%x;\n", (int)config->failOffset);
+        }
+        if (config->failSplashTop[0] != '\0')
+            size += snprintf(cfg+size, 256, "failImgTop=%s;\n", config->failSplashTop);
+        if (config->failSplashBot[0] != '\0')
+            size += snprintf(cfg+size, 256, "failImgBot=%s;\n", config->failSplashBot);
+    }
 
     // theme section
-    size += snprintf(cfg+size, 256, "[theme]\n");
+    size += snprintf(cfg+size, 256, "\n[theme]\n");
     size += snprintf(cfg+size, 256, "bgTop1=%02X%02X%02X;\n", config->bgTop1[0], config->bgTop1[1], config->bgTop1[2]);
     size += snprintf(cfg+size, 256, "bgTop2=%02X%02X%02X;\n", config->bgTop2[0], config->bgTop2[1], config->bgTop2[2]);
     size += snprintf(cfg+size, 256, "bgBottom=%02X%02X%02X;\n", config->bgBot[0], config->bgBot[1], config->bgBot[2]);
@@ -871,7 +947,7 @@ void configSave() {
         size += snprintf(cfg+size, 256, "path=%s;\n", entry->path);
         size += snprintf(cfg+size, 256, "offset=%x;\n", (int)entry->offset);
         
-        int patchesCount = config->entries[i].patchesCount;
+        int patchesCount = entry->patchesCount;
     #ifdef ARM9
         for (int j = 0; j < patchesCount; j++)
         {
@@ -885,6 +961,11 @@ void configSave() {
             size += snprintf(cfg+size, 256, ";\npatchOccurence=%i;\n", curPatch->occurence);
         }
     #endif
+
+        if (entry->splashTop[0] != '\0')
+            size += snprintf(cfg+size, 256, "splashTop=%s;\n", entry->splashTop);
+        if (entry->splashBot[0] != '\0')
+            size += snprintf(cfg+size, 256, "splashBot=%s;\n", entry->splashBot);
 
         if ( entry->thumbTop.path[0] != '\0' )
         {
