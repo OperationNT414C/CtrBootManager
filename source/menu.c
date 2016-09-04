@@ -63,6 +63,7 @@ void drawTitle(const char *format, ...) {
     vsnprintf(msg, 512, format, argp);
     va_end(argp);
 
+    memcpy(fontDefault.color, anim->fntDef, sizeof(u8[4]));
     drawText(GFX_TOP, GFX_LEFT, &fontDefault, msg, 140, 25);
     if( IS3DACTIVE )
         drawText(GFX_TOP, GFX_RIGHT, &fontDefault, msg, 140, 25);
@@ -124,4 +125,13 @@ void drawInfo(const char *format, ...) {
     drawText(GFX_BOTTOM, GFX_LEFT, &fontDefault, msg, (s16) (MENU_MIN_X + 12), 80);
     
     memcpy(fontDefault.color, anim->fntDef, sizeof(u8[4]));
+}
+
+char* splashScreen(char* splash, char* defSplash)
+{
+    if ( NULL != splash && splash[0] != '\0')
+        return splash;
+    if ( NULL != defSplash && defSplash[0] != '\0')
+        return defSplash;
+    return NULL;
 }
