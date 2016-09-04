@@ -52,6 +52,8 @@ int menu_netloaderarm9(void) {
             inet_ntoa(sa.sin_addr), BRAHMA_NETWORK_PORT);
     drawBg();
     drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
+    if ( IS3DACTIVE )
+        drawTextf(GFX_TOP, GFX_RIGHT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
     swapFrameBuffers();
 
     sflags = fcntl(sockfd, F_GETFL);
