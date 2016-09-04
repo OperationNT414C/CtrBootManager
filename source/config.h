@@ -22,6 +22,10 @@ extern "C" {
 #include "loader.h" // Binary patches define
 
 #define BIT(n) (1U<<(n))
+
+#define PASSWORD_MAX_SIZE 16
+#define MAX_KEY 11
+
 #define DEFAULT_ENTRIES_COUNT 11
 #define ENTRIES_COUNT_INC 12
 #define PATCHES_MAX_PER_ENTRY 4
@@ -49,6 +53,9 @@ typedef struct {
     binary_patch patches[PATCHES_MAX_PER_ENTRY];
     int patchesCount;
 
+    char splashTop[128];
+    char splashBot[128];
+
     thumbnail_s thumbTop;
     thumbnail_s thumbTop3D;
     thumbnail_s thumbBot;
@@ -72,10 +79,22 @@ typedef struct {
     int brightness;
     int index;
     int recovery;
+    
+    int password[PASSWORD_MAX_SIZE];
+    int passSize;
+    int passMaxAttempt;
+    char failPath[128];
+    long failOffset;
+    char failSplashTop[128];
+    char failSplashBot[128];
+
     int count;
     int maxCount;
     boot_entry_s* entries;
 
+    char splashTopDef[128];
+    char splashBotDef[128];
+    
     u8 bgTop1[3];
     u8 bgTop2[3];
     u8 bgBot[3];
