@@ -18,8 +18,6 @@ typedef enum
 
 u8 *gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16 *width, u16 *height);
 
-#define TOP_SCREEN_SIZE (400*240*3)
-#define BOT_SCREEN_SIZE (320*240*3)
 #define IS3DACTIVE false
 
 #else
@@ -28,6 +26,9 @@ u8 *gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16 *width, u16 *hei
 #define IS3DACTIVE gfxIs3D()
 
 #endif
+
+#define TOP_SCREEN_SIZE (400*240*3)
+#define BOT_SCREEN_SIZE (320*240*3)
 
 #include "font.h"
 
@@ -53,7 +54,5 @@ void drawRectangle(gfxScreen_t screen, gfx3dSide_t side, u8 rgbaColor[4], s16 x,
 void clearTop(u8 top1[3], u8 top2[3]);
 
 void clearBot(u8 bot[8]);
-
-void clearFrameBuffers();
 
 void swapFrameBuffers();
