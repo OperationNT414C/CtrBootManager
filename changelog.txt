@@ -1,11 +1,31 @@
+2.3.0
+
+Add splash screen support, keywords "splashTop" and "splashBot"
+- In "[general]" category for default behavior
+- In "[entry]" categories for per-entry behavior (which override the default behavior)
+
+Add password feature, it can be configured from "Settings" menu (maximum of 16 keys supported)
+
+Password can be set through the new "[password]" category with the following properties:
+- "keys": the password itself (integers list separated with ":")
+- "attempts": the allowed attempts before considering that the password check is failed (0 means infinite)
+- "failPath": loaded element if the password check has failed
+- "failOffset": offset for loaded element if the password check has failed
+- "failImgTop" and "failImgBot": splash screen when password check has failed (it could be the freeze scren if "failPath" is invalid/empty)
+
 2.2.0
 
 Add "brightness" property for screen-init (only used if CtrBootManager must initialize the screen)
+
 The font used on bottom screen can have a different color ("font3" property in "[theme]" and "[animation]" categories).
+
 Add support for transparent background images (the background color will be displayed on transparent zones)
 - "bgImgTopAlpha", "bgImgTop3DAlpha" and "bgImgBotAlpha" keywords in "[theme]" category to set a background image as transparent
+
 Add background images fade-in effect, activated by "bgImgTopFadeIn" and "bgImgBotFadeIn" properties in "[animation]" category
+
 Add the possibility to have more than 11 boot entries (but "File browser" entry add feature cannot put more than the previous entries rounded up to a 12 multiplier)
+
 Thumbnail support for each boot entry, new keywords in "[entry]" categories:
 - "thumbTop", "thumbTop3D" and "thumbBot" for thumbnail path for each screen
 - "thumbTopParams", "thumbTop3DParams" and "thumbBotParams" for thumbnail parameters, format "posX:posY:sizeX:sizeY:alpha"
