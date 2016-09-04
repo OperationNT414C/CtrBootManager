@@ -10,12 +10,36 @@
 #include "arm9/source/fatfs/ff.h"
 #include "stage2_bin.h"
 #include "memory.h"
+#include "screeninit.h"
 
 #endif
 
 #include "draw.h"
 #include "loader.h"
 #include "utility.h"
+
+void screenBehavior(gfxScreen_t screen, int screenSize, char* splash)
+{
+    if ( NULL == splash || splash[0] == '\0' )
+        return;
+
+    u8* fb = gfxGetFramebuffer(screen, GFX_LEFT, NULL, NULL);
+    if ( splash[0] == '/' )
+        fileRead(splash, fb, screenSize);
+    else if ( strcasecmp(splash, "clear") == 0 )
+        memset(fb, 0, screenSize);
+}
+
+void screensBehavior(char* splashTop, char* splashBot)
+{
+#ifndef ARM9
+    gfxSet3D(false);
+#endif
+
+    screenBehavior(GFX_TOP, TOP_SCREEN_SIZE, splashTop);
+    screenBehavior(GFX_BOTTOM, BOT_SCREEN_SIZE, splashBot);
+    swapFrameBuffers();
+}
 
 #ifdef ARM9
 
@@ -45,7 +69,7 @@ unsigned char *memsearch(unsigned char *startPos, const void *pattern, int size,
     return NULL;
 }
 
-int load_bin(char *path, long offset, binary_patch* patches, int patchesCount) {
+int load_bin(char *path, long offset, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot) {
 
     // Load binary
     size_t size = fileSize(path);
@@ -78,9 +102,8 @@ int load_bin(char *path, long offset, binary_patch* patches, int patchesCount) {
                 binFound += patches[i].memToSearchSize;
         }
     }
-
-    // Start binary
-    clearFrameBuffers();
+    
+    screensBehavior(splashTop, splashBot);
 
     memcpy((void *) PTR_PAYLOAD_STAGE2, stage2_bin, stage2_bin_size);
     ((void (*)()) PTR_PAYLOAD_STAGE2)();
@@ -92,15 +115,18 @@ int load_bin(char *path, long offset, binary_patch* patches, int patchesCount) {
 char boot_app[512];
 bool boot_app_enabled;
 
-int load_3dsx(char *path) {
+int load_3dsx(char *path, char* splashTop, char* splashBot) {
+    
+    screensBehavior(splashTop, splashBot);
     memset(boot_app, 0, 512);
     strncpy(boot_app, path, 512);
     boot_app_enabled = true;
     return 0;
 }
 
-int load_bin(char *path, long offset, binary_patch* patches, int patchesCount) {
+int load_bin(char *path, long offset, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot) {
 
+    screensBehavior(splashTop, splashBot);
     gfxExit();
 
     if (brahma_init()) {
@@ -121,7 +147,7 @@ int load_bin(char *path, long offset, binary_patch* patches, int patchesCount) {
 
 #endif
 
-int load(char *path, long offset, binary_patch* patches, int patchesCount) {
+int load(char *path, long offset, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot) {
     // check for reboot/poweroff
     if (strcasecmp(path, "reboot") == 0) {
         reboot();
@@ -131,14 +157,14 @@ int load(char *path, long offset, binary_patch* patches, int patchesCount) {
     } else if (strcasecmp(path, "homemenu") == 0) {
         return load_homemenu();
 #endif
-    } else {
+    } else if (NULL != path && path[0] != '\0') {
+        
         const char *ext = get_filename_ext(path);
-        if (strcasecmp(ext, "bin") == 0
-            || strcasecmp(ext, "dat") == 0) {
-            return load_bin(path, offset, patches, patchesCount);
+        if (strcasecmp(ext, "bin") == 0 || strcasecmp(ext, "dat") == 0) {
+            return load_bin(path, offset, patches, patchesCount, splashTop, splashBot);
 #ifndef ARM9
         } else if (strcasecmp(ext, "3dsx") == 0) {
-            return load_3dsx(path);
+            return load_3dsx(path, splashTop, splashBot);
 #endif
         } else {
             debug("Invalid file: %s\n", path);
