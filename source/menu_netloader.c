@@ -1,5 +1,6 @@
 #include <3ds.h>
 #include <stdio.h>
+#include "config.h"
 #include "draw.h"
 #include "netloader.h"
 #include "utility.h"
@@ -23,6 +24,8 @@ int menu_netloader() {
 
     drawBg();
     drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
+    if ( IS3DACTIVE )
+        drawTextf(GFX_TOP, GFX_RIGHT, &fontDefault, MENU_MIN_X + 16, MENU_MIN_Y + 16, msg);
     swapFrameBuffers();
 
     while (aptMainLoop()) {
@@ -38,7 +41,7 @@ int menu_netloader() {
         int rc = netloader_loop();
         if (rc > 0) {
             netloader_boot = true;
-            return load_3dsx(netloadedPath);
+            return load_3dsx(netloadedPath, config->splashTopDef, config->splashBotDef);
         } else if (rc < 0) {
             netloader_draw_error();
             break;
