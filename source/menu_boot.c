@@ -36,22 +36,17 @@ int key_override(int index) {
 
 int boot(int index) {
 
-#ifdef ARM9
-    return load(config->entries[index].path,
-                config->entries[index].offset,
-                config->entries[index].patches,
-                config->entries[index].patchesCount);
-#else
+#ifndef ARM9
     int delay = config->autobootfix;
     while (aptMainLoop() && delay > 0) {
         swapFrameBuffers();
         delay--;
     }
-    return load(config->entries[index].path,
-                config->entries[index].offset,
-                config->entries[index].patches,
-                config->entries[index].patchesCount);
 #endif
+    boot_entry_s* entry = &config->entries[index];
+    return load(entry->path, entry->offset, entry->patches, entry->patchesCount,
+                splashScreen(entry->splashTop, config->splashTopDef),
+                splashScreen(entry->splashBot, config->splashBotDef));
 }
 
 int menu_boot() {
@@ -76,7 +71,16 @@ int menu_boot() {
     time(&start);
 #endif
 
+    static const u32 checkedKeys = 0x0FFF;
+    
+    // Trash first key
+    hidScanInput();
+    hidKeysDown();
+    
     while (aptMainLoop()) {
+
+        hidScanInput();
+        u32 kDown = hidKeysDown();
 
         if (timer) {
 #ifdef ARM9
@@ -90,47 +94,47 @@ int menu_boot() {
                 int index = key_override(boot_index);
                 return boot(index);
             }
+
+            if (kDown & checkedKeys)
+                timer = false;
         }
 
-        hidScanInput();
-        u32 kDown = hidKeysDown();
+        if (!timer)
+        {
+            if ( menu_password() )
+                kDown = 0;
 
-        if (kDown & KEY_DOWN) {
-            timer = false;
-            boot_index++;
-            if (boot_index > config->count)
-                boot_index = 0;
-        }
-        else if (kDown & KEY_UP) {
-            timer = false;
-            boot_index--;
-            if (boot_index < 0)
-                boot_index = config->count;
-        }
-        if (kDown & KEY_RIGHT) {
-            timer = false;
-            boot_index = (boot_index == config->count) ? 0 : config->count;
-        }
-        else if (kDown & KEY_LEFT) {
-            timer = false;
-            boot_index = (boot_index == 0) ? config->count : 0;
-        }
-        else if (kDown & KEY_A) {
-            timer = false;
-            if (boot_index == config->count) {
-                if(menu_more() == 0) {
+            if (kDown & KEY_DOWN) {
+                boot_index++;
+                if (boot_index > config->count)
+                    boot_index = 0;
+            }
+            else if (kDown & KEY_UP) {
+                boot_index--;
+                if (boot_index < 0)
+                    boot_index = config->count;
+            }
+            if (kDown & KEY_RIGHT) {
+                boot_index = (boot_index == config->count) ? 0 : config->count;
+            }
+            else if (kDown & KEY_LEFT) {
+                boot_index = (boot_index == 0) ? config->count : 0;
+            }
+            else if (kDown & KEY_A) {
+                if (boot_index == config->count) {
+                    if(menu_more() == 0) {
+                        break;
+                    }
+                } else if (boot(boot_index) == 0) {
                     break;
                 }
-            } else if (boot(boot_index) == 0) {
-                break;
             }
-        }
-        else if (kDown & KEY_X) {
-            timer = false;
-            if (boot_index != config->count) {
-                if (confirm(3, "Delete boot entry: \"%s\" ?\n", config->entries[boot_index].title)) {
-                    configRemoveEntry(boot_index);
-                    boot_index = config->index;
+            else if (kDown & KEY_X) {
+                if (boot_index != config->count) {
+                    if (confirm(3, "Delete boot entry: \"%s\" ?\n", config->entries[boot_index].title)) {
+                        configRemoveEntry(boot_index);
+                        boot_index = config->index;
+                    }
                 }
             }
         }
