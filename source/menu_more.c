@@ -11,6 +11,7 @@
 
 #endif
 
+#include "config.h"
 #include "draw.h"
 #include "utility.h"
 #include "loader.h"
@@ -38,7 +39,7 @@ int menu_choose() {
     int pathLength = 0;
     if ((pathLength = strlen(picked.path)) > 0) {
         int offset = ( pathLength > 3 && strcasecmp(&picked.path[pathLength-3], "dat") == 0 ) ? 0x12000 : 0;
-        return load(picked.path, offset, NULL, 0);
+        return load(picked.path, offset, NULL, 0, config->splashTopDef, config->splashBotDef);
     }
 
     return -1;
@@ -46,6 +47,7 @@ int menu_choose() {
 
 int menu_more() {
 
+    menu_password();
     menu_index = 0;
 
     while (aptMainLoop()) {
