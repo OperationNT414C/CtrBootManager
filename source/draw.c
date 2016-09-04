@@ -277,22 +277,6 @@ void clearBot(u8 bot[8]) {
     fillColor(GFX_BOTTOM, GFX_LEFT, bot);
 }
 
-void clearFrameBuffers() {
-#ifdef ARM9
-    memset(PTR_TOP_SCREEN, 0, TOP_SCREEN_SIZE);
-    memset(PTR_BOT_SCREEN, 0, BOT_SCREEN_SIZE);
-    memset(PTR_TOP_SCREEN_BUF, 0, TOP_SCREEN_SIZE);
-    memset(PTR_BOT_SCREEN_BUF, 0, BOT_SCREEN_SIZE);
-    memset(PTR_TOP_BG, 0, TOP_SCREEN_SIZE);
-    memset(PTR_BOT_BG, 0, BOT_SCREEN_SIZE);
-#else
-    fillColor(GFX_TOP, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
-    if( IS3DACTIVE )
-        fillColor(GFX_TOP, GFX_RIGHT, (u8[3]) {0x00, 0x00, 0x00});
-    fillColor(GFX_BOTTOM, GFX_LEFT, (u8[3]) {0x00, 0x00, 0x00});
-#endif
-}
-
 void swapFrameBuffers() {
 #ifdef ARM9
     memcpy(PTR_TOP_SCREEN, PTR_TOP_SCREEN_BUF, TOP_SCREEN_SIZE);
