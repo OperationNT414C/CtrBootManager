@@ -16,9 +16,13 @@ void drawItemN(bool selected, int maxChar, int y, const char *format, ...);
 
 void drawInfo(const char *format, ...);
 
+char* splashScreen(char* splash, char* defSplash);
+
 int menu_more();
 
 int menu_boot();
+
+int menu_password();
 
 int menu_config();
 
