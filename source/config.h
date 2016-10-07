@@ -79,6 +79,7 @@ typedef struct {
     int brightness;
     int index;
     int recovery;
+    int directBootScreenInit;
     
     int password[PASSWORD_MAX_SIZE];
     int passSize;
