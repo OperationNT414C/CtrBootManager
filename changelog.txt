@@ -1,3 +1,10 @@
+2.3.1
+
+Add the possibility to disable screen initialization for direct boot (timeout of "0" and no recovery key pressed)
+- In "[general]" category, write "screeninit=0;"
+
+Don't forget that if the chainloaded binary doesn't do any screen initalization, enabling this feature will make it crash!
+
 2.3.0
 
 Add splash screen support, keywords "splashTop" and "splashBot"
