@@ -2,6 +2,7 @@
 
 #include "arm9/source/common.h"
 #include "arm9/source/hid.h"
+#include "screeninit.h"
 
 #else
 #include <3ds.h>
@@ -64,11 +65,26 @@ int menu_boot() {
     if (key & BIT(config->recovery) || config->timeout < 0) { // disable autoboot
         timer = false;
     } else if (config->timeout == 0 || key_override(boot_index) != boot_index) { // autoboot
+    #ifdef ARM9
+        if (config->directBootScreenInit)
+            initScreens(config->brightness);
+        else
+        {
+            // Screen was not initialize, we must absolutly avoid any splash screen!
+            boot_entry_s* entry = &config->entries[key_override(boot_index)];
+            entry->splashTop[0] = '\0';
+            entry->splashBot[0] = '\0';
+            config->splashTopDef[0] = '\0';
+            config->splashBotDef[0] = '\0';
+        }
+    #endif
         return boot(key_override(boot_index));
     }
 
 #ifndef ARM9
     time(&start);
+#else
+    initScreens(config->brightness);
 #endif
 
     static const u32 checkedKeys = 0x0FFF;
