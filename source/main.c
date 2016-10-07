@@ -89,9 +89,6 @@ int main() {
                 break;
         }
     } else {
-    #ifdef ARM9
-    	initScreens(config->brightness);
-    #endif
         animSetup();
         while (aptMainLoop()) {
             if (menu_boot() == 0)
