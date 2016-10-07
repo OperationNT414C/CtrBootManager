@@ -349,7 +349,9 @@ static int handler(void *user, const char *section, const char *name,
             strncpy(config->splashBotDef, item, 128);
         }
     #ifdef ARM9
-        else if (NAME_MATCH("brightness")) {
+        else if (NAME_MATCH("screeninit")) {
+            config->directBootScreenInit = atoi(item);
+        } else if (NAME_MATCH("brightness")) {
             config->brightness = atoi(item);
         }
     #else
@@ -613,6 +615,7 @@ int configInit() {
     config->brightness = 0;
     config->index = 0;
     config->recovery = 2;
+    config->directBootScreenInit = 1;
     
     config->splashTopDef[0] = '\0';
     config->splashBotDef[0] = '\0';
@@ -754,6 +757,8 @@ void configSave() {
     // general section
     size += snprintf(cfg, 256, "[general]\n");
 #ifdef ARM9
+    if (config->directBootScreenInit != 1)
+        size += snprintf(cfg+size, 256, "screeninit=%i;\n", config->directBootScreenInit);
     if (config->brightness > 0)
         size += snprintf(cfg+size, 256, "brightness=%i;\n", config->brightness);
 #else
