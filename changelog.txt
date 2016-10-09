@@ -1,3 +1,7 @@
+2.3.2
+
+Fix crash in the recently added feature to disable screen initialization for direct boot (due to swapbuffer for splash screen)
+
 2.3.1
 
 Add the possibility to disable screen initialization for direct boot (timeout of "0" and no recovery key pressed)
