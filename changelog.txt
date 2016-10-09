@@ -1,6 +1,6 @@
 2.3.2
 
-Fix crash in the recently added feature to disable screen initialization for direct boot (due to swapbuffer for splash screen)
+Fix crash in the recently added feature to disable screen initialization for direct boot (due to swapbuffer call for splash screen)
 
 2.3.1
 
