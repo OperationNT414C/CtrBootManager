@@ -333,10 +333,10 @@ int menu_config() {
         
 #ifdef ARM9
         drawItem(menu_index == 3, 48, "Screen initialization brightness:  %i", BRIGHTNESS_COUNT-config->brightness);
-        drawInfo("CtrBootManager9 v2.3.1");    
+        drawInfo("CtrBootManager9 v2.3.2");    
 #else
         drawItem(menu_index == 3, 48, "Bootfix:  %i", config->autobootfix);
-        drawInfo("CtrBootManager v2.3.1");
+        drawInfo("CtrBootManager v2.3.2");
 #endif
 
         swapFrameBuffers();
