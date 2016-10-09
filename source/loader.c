@@ -18,16 +18,18 @@
 #include "loader.h"
 #include "utility.h"
 
-void screenBehavior(gfxScreen_t screen, int screenSize, char* splash)
+int screenBehavior(gfxScreen_t screen, int screenSize, char* splash)
 {
     if ( NULL == splash || splash[0] == '\0' )
-        return;
+        return 0;
 
     u8* fb = gfxGetFramebuffer(screen, GFX_LEFT, NULL, NULL);
     if ( splash[0] == '/' )
         fileRead(splash, fb, screenSize);
     else if ( strcasecmp(splash, "clear") == 0 )
         memset(fb, 0, screenSize);
+
+    return 1;
 }
 
 void screensBehavior(char* splashTop, char* splashBot)
@@ -36,9 +38,11 @@ void screensBehavior(char* splashTop, char* splashBot)
     gfxSet3D(false);
 #endif
 
-    screenBehavior(GFX_TOP, TOP_SCREEN_SIZE, splashTop);
-    screenBehavior(GFX_BOTTOM, BOT_SCREEN_SIZE, splashBot);
-    swapFrameBuffers();
+    int needSwap = screenBehavior(GFX_TOP, TOP_SCREEN_SIZE, splashTop);
+    needSwap += screenBehavior(GFX_BOTTOM, BOT_SCREEN_SIZE, splashBot);
+    
+    if (needSwap)
+        swapFrameBuffers();
 }
 
 #ifdef ARM9
