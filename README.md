@@ -13,7 +13,9 @@ CtrBootManager is a boot manager for some 3DS homebrew applications, like HBL an
  3. `cmake -DCMAKE_TOOLCHAIN_FILE=../DevkitArm3DS.cmake ../`
  4. `cmake --build . --target screeninit_a9lh`
  5. `bin2h -c screeninit < screeninit.bin > screeninit.h`
- 6. `cmake --build . --target CtrBootManager_a9lh`
+ 6. `cmake --build . --target loader_a9lh`
+ 7. `bin2h -c loader < loader.bin > loader.h`
+ 8. `cmake --build . --target CtrBootManager_a9lh`
 
 Binaries should now be in the `build` folder.
 
