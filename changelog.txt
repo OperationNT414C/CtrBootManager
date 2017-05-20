@@ -1,3 +1,11 @@
+2.4.0
+
+Include B9S version named "CtrBootManager9.firm"
+Support ".firm" files in A9LH/B9S versions
+- Binary patches are supported for this new file type
+- Offset is not supported for this new file type
+- Remove useless 3DSX file detection for those versions
+
 2.3.2
 
 Fix crash in the recently added feature to disable screen initialization for direct boot (due to swapbuffer call for splash screen)
