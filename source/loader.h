@@ -13,7 +13,9 @@ int load(char *path, long offset, binary_patch* patches, int patchesCount, char*
 
 void screensBehavior(char* splashTop, char* splashBot);
 
-#ifndef ARM9
+#ifdef ARM9
+int load_firm(char *path, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot);
+#else
 int load_3dsx(char *path, char* splashTop, char* splashBot);
 #endif
 
