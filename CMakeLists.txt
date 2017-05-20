@@ -19,6 +19,9 @@ file(GLOB_RECURSE SOURCE_FILES_ARM9
 file(GLOB_RECURSE SOURCE_FILES_SCREENINIT
     screeninit/source/*
 )
+file(GLOB_RECURSE SOURCE_FILES_LOADER
+    loader/source/*
+)
 
 # Filter
 file(GLOB FILTER_FILES
@@ -73,6 +76,18 @@ set_source_files_properties(screeninit/source/start.s PROPERTIES COMPILE_FLAGS "
 set_target_properties(screeninit PROPERTIES LINK_FLAGS
         "-nostdlib -nostartfiles -g -mthumb -mthumb-interwork -Wl,-Map,screeninit.map -T ${CMAKE_SOURCE_DIR}/screeninit/linker.ld ")
 add_a9lh_target(screeninit_a9lh screeninit)
+
+###################
+# FIRM loader
+###################
+add_executable(loader ${SOURCE_FILES_LOADER})
+set(ASFLAGS "-mcpu=mpcore -mfloat-abi=hard")
+set(CFLAGS "-Wall -Wextra -MMD -MP -mthumb -mthumb-interwork $(ASFLAGS) -fno-builtin -std=c11 -Wno-main -O2 -flto -ffast-math")
+set_target_properties(loader PROPERTIES COMPILE_FLAGS ${CFLAGS})
+set_source_files_properties(loader/source/start.s PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp ${CFLAGS}")
+set_target_properties(loader PROPERTIES LINK_FLAGS
+        "-nostdlib -nostartfiles -g -mthumb -mthumb-interwork -Wl,-Map,loader.map -T ${CMAKE_SOURCE_DIR}/loader/linker.ld ")
+add_a9lh_target(loader_a9lh loader)
 
 ###################
 # CtrBootManager9
