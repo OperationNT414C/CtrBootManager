@@ -11,6 +11,8 @@
 #include "stage2_bin.h"
 #include "memory.h"
 #include "screeninit.h"
+#include "arm9/source/firm.h"
+#include "../build/loader.h"
 
 #endif
 
@@ -73,25 +75,13 @@ unsigned char *memsearch(unsigned char *startPos, const void *pattern, int size,
     return NULL;
 }
 
-int load_bin(char *path, long offset, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot) {
-
-    // Load binary
-    size_t size = fileSize(path);
-    if (!size) {
-        return -1;
-    }
-
-    if (fileReadOffset(path, (void *) PTR_PAYLOAD_MAIN_DATA, PTR_PAYLOAD_SIZE_MAX, offset) != 0) {
-        return -1;
-    }
-    
-    // Apply patches
-    unsigned char* oriBinary = (unsigned char*)PTR_PAYLOAD_MAIN_DATA;
+void applyPatches(unsigned char*  binaryData, size_t binarySize, long offset, binary_patch* patches, int patchesCount)
+{
     for (int i = 0 ; i < patchesCount ; i++)
     {
-        unsigned char* binFound = oriBinary;
+        unsigned char* binFound = binaryData;
         int curOccurence = 0;
-        while ( NULL != (binFound = memsearch(binFound, patches[i].memToSearch, size-offset+oriBinary-binFound, patches[i].memToSearchSize)) )
+        while ( NULL != (binFound = memsearch(binFound, patches[i].memToSearch, binarySize-offset+binaryData-binFound, patches[i].memToSearchSize)) )
         {
             curOccurence++;
             if ( patches[i].occurence == 0 || curOccurence == patches[i].occurence )
@@ -106,11 +96,59 @@ int load_bin(char *path, long offset, binary_patch* patches, int patchesCount, c
                 binFound += patches[i].memToSearchSize;
         }
     }
-    
+}
+
+int load_bin(char *path, long offset, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot) {
+
+    // Load binary
+    size_t payloadSize = fileSize(path);
+    if (!payloadSize) {
+        return -1;
+    }
+
+    if (fileReadOffset(path, (void *) PTR_PAYLOAD_MAIN_DATA, PTR_PAYLOAD_SIZE_MAX, offset) != 0) {
+        return -1;
+    }
+
+    applyPatches((unsigned char*)PTR_PAYLOAD_MAIN_DATA, payloadSize, offset, patches, patchesCount);
     screensBehavior(splashTop, splashBot);
 
     memcpy((void *) PTR_PAYLOAD_STAGE2, stage2_bin, stage2_bin_size);
     ((void (*)()) PTR_PAYLOAD_STAGE2)();
+
+    return 0;
+}
+
+static Firm *const firm = (Firm *const)PTR_PAYLOAD_FIRM_DATA;
+
+int load_firm(char *path, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot)
+{
+    u32 *loaderAddress = (u32 *)PTR_PAYLOAD_FIRM;
+    u32 maxPayloadSize = (u32)((u8 *)loaderAddress - (u8 *)firm);
+
+    size_t payloadSize = fileSize(path);
+    if (!payloadSize || payloadSize > maxPayloadSize) {
+        return -1;
+    }
+
+    if (fileRead(path, firm, payloadSize) != 0) {
+        return -1;
+    }
+
+    if(!checkFirmPayload(firm)) {
+        return -1;
+    }
+
+    applyPatches((unsigned char*)firm, payloadSize, sizeof(Firm), patches, patchesCount);
+    screensBehavior(splashTop, splashBot);
+
+    // Luma3DS loading support
+    char absPath[256] = {0};
+    sprintf(absPath, "sdmc:%s", path);
+    char *argv[1] = {absPath};
+
+    memcpy((void*)loaderAddress, loader, loader_size);
+    ((void (*)(int, char **, u32))loaderAddress)(1, argv, 0x0000BEEF);
 
     return 0;
 }
@@ -166,7 +204,10 @@ int load(char *path, long offset, binary_patch* patches, int patchesCount, char*
         const char *ext = get_filename_ext(path);
         if (strcasecmp(ext, "bin") == 0 || strcasecmp(ext, "dat") == 0) {
             return load_bin(path, offset, patches, patchesCount, splashTop, splashBot);
-#ifndef ARM9
+#ifdef ARM9
+        } else if (strcasecmp(ext, "firm") == 0) {
+            return load_firm(path, patches, patchesCount, splashTop, splashBot);
+#else
         } else if (strcasecmp(ext, "3dsx") == 0) {
             return load_3dsx(path, splashTop, splashBot);
 #endif
