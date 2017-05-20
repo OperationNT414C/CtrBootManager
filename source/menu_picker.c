@@ -52,7 +52,11 @@ void parse_file(struct dirent *file) {
         const char *ext = get_filename_ext(file->d_name);
         if (strcasecmp(ext, "bin") != 0
             && strcasecmp(ext, "dat") != 0
+        #ifdef ARM9
+            && strcasecmp(ext, "firm") != 0)
+        #else
             && strcasecmp(ext, "3dsx") != 0)
+        #endif
             return;
     }
 
@@ -245,11 +249,11 @@ void pick_file(file_s *picked, const char *path) {
             if (!picker->files[index].isDir) {
                 const char *ext = get_filename_ext(picker->files[index].name);
                 int noOffsetReq = 1;
+                if (strcasecmp(ext, "bin") == 0 || (noOffsetReq = strcasecmp(ext, "dat")) == 0
 #ifdef ARM9
-                if (strcasecmp(ext, "bin") == 0 || (noOffsetReq = strcasecmp(ext, "dat")) == 0) {
-                    
+                    || strcasecmp(ext, "firm") == 0) {
 #else
-                if (strcasecmp(ext, "3dsx") == 0) {
+                    || strcasecmp(ext, "3dsx") == 0) {
 #endif
                     if (confirm(3, "Add entry to boot menu: \"%s\" ?", picker->files[index].name)) {
                         if (config->count > config->maxCount - 1) {
