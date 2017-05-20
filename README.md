@@ -7,6 +7,7 @@ CtrBootManager is a boot manager for some 3DS homebrew applications, like HBL an
 - libconfig in portlibs (tried with v1.5)
 
 ##Building
+
 ###The recommended way:
  1. `mkdir build/`
  2. `cd build/`
@@ -20,6 +21,7 @@ CtrBootManager is a boot manager for some 3DS homebrew applications, like HBL an
 Binaries should now be in the `build` folder.
 
 ##Credits
+
 ###For contributions to hb_menu:
  * smea : code
  * GEMISIS : code
@@ -37,10 +39,15 @@ Binaries should now be in the `build` folder.
  * delebile 
  * tiniVi
 
+###For FIRM loader code:
+ * Aurora Wright
+ * TuxSH
+
 ###For movies support code example:
  * Wolfvak
  * d0k3 : compressed movies
 
 ###Other credits:
+
 Readme by gemarcano
 This project also uses [Brahma](https://github.com/patois/Brahma). See its repository for its credits.
