@@ -1,6 +1,6 @@
 #include "firm.h"
 
-#include "sha.h"
+#include "crypto.h"
 
 static __attribute__((noinline)) bool overlaps(u32 as, u32 ae, u32 bs, u32 be)
 {
