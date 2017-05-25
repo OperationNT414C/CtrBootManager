@@ -38,3 +38,18 @@
 #define getle64(d) (*((u64*) (d)))
 #define align(v,a) \
     (((v) % (a)) ? ((v) + (a) - ((v) % (a))) : (v))
+
+#define CFG_SYSPROT9        (*(vu8  *)0x10000000)
+#define CFG_BOOTENV         (*(vu32 *)0x10010000)
+#define CFG_UNITINFO        (*(vu8  *)0x10010010)
+#define CFG_TWLUNITINFO     (*(vu8  *)0x10010014)
+#define OTP_DEVCONSOLEID    (*(vu64 *)0x10012000)
+#define OTP_TWLCONSOLEID    (*(vu64 *)0x10012100)
+#define PDN_MPCORE_CFG      (*(vu32 *)0x10140FFC)
+#define PDN_SPI_CNT         (*(vu32 *)0x101401C0)
+
+#define ISN3DS       (PDN_MPCORE_CFG == 7)
+#define ISDEVUNIT    (CFG_UNITINFO != 0)
+
+u32 hexAtoi(const char *in, u32 digits);
+u32 decAtoi(const char *in, u32 digits);
