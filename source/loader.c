@@ -143,9 +143,8 @@ int load_firm(char *path, binary_patch* patches, int patchesCount, char* splashT
     screensBehavior(splashTop, splashBot);
 
     // Luma3DS loading support
-    char absPath[256] = {0};
-    sprintf(absPath, "sdmc:%s", path);
-    char *argv[1] = {absPath};
+    char absPath[256];
+    char *argv[1] = {computeFullPath(path, absPath)};
 
     memcpy((void*)loaderAddress, loader, loader_size);
     ((void (*)(int, char **, u32))loaderAddress)(1, argv, 0x0000BEEF);
