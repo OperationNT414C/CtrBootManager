@@ -7,6 +7,10 @@ _start:
     @ Change the stack pointer
     mov sp, #0x27000000
 
+    @ Store main arguments
+    mov r8, r0
+    mov r9, r1
+
     @ Give read/write access to all the memory regions
     ldr r5, =0x33333333
     mcr p15, 0, r5, c5, c0, 2 @ write data access
@@ -54,6 +58,10 @@ _start:
 	ldr r0, =0x10000020
 	mov r1, #0x340
 	str r1, [r0]
+
+    @ Restore main arguments
+    mov r0, r8
+    mov r1, r9
 
     bl main
 
