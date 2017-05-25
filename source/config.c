@@ -3,7 +3,6 @@
 //
 #include <string.h>
 #include <stdlib.h>
-#include <sys/unistd.h>
 #include "ini.h"
 #include "config.h"
 #include "font.h"
@@ -13,6 +12,8 @@
 #include "utility.h"
 #include "memory.h"
 #endif
+
+#define COMPUTED_CONFIG_PATH (START_DRIVE_RO?CONFIG_PATH_RO:CONFIG_PATH)
 
 #define SECTION_MATCH(s) strcmp(section, s) == 0
 #define NAME_MATCH(n) strcmp(name, n) == 0
@@ -640,12 +641,12 @@ int configInit() {
     configThemeInit();
 
     // read config file to buffer
-    size_t size = fileSize(CONFIG_PATH);
+    size_t size = fileSize(COMPUTED_CONFIG_PATH);
     if ( size != -1 && size > 0 )
     {
         char buffer[size];
         memset(buffer, 0, size);
-        if (fileRead(CONFIG_PATH, buffer, size) != 0)
+        if (fileRead(COMPUTED_CONFIG_PATH, buffer, size) != 0)
         {
             debug("Could not read config file, creating one...");
             configSave();
@@ -744,6 +745,9 @@ int configRemoveEntry(int index) {
 }
 
 void configSave() {
+
+    if (START_DRIVE_RO)
+        return;
 
     int size = 0, i = 0;
     int buffSize = 256*(256*sizeof(char));
@@ -995,21 +999,9 @@ void configSave() {
 
         size += snprintf(cfg+size, 256, "key=%i;\n", entry->key);
     }
-#ifdef ARM9
-    FIL file;
-    unsigned int br = 0;
-    f_unlink(CONFIG_PATH);
-    if(f_open(&file, CONFIG_PATH, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK) {
-        debug("Could not open cfg: %s", CONFIG_PATH);
-        return;
-    }
-    f_write(&file, cfg, size, &br);
-    f_close(&file);
-#else
-    unlink(CONFIG_PATH);
-    FILE *file = fopen(CONFIG_PATH, "w");
-    fwrite(cfg, 1 , size, file);
-    fclose(file);
+
+    fileWrite(COMPUTED_CONFIG_PATH, cfg, size);
+#ifndef ARM9
     free(cfg);
 #endif
 }
