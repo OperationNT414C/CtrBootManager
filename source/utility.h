@@ -7,9 +7,27 @@ extern "C" {
 
 #ifdef ARM9
 
+#define MANAGED_DRIVES_COUNT 2
+#define SD_CARD_ID 0
+#define SYSNAND_ID 1
+
+void initFileSystems(bool isLoadedFromSD);
+
+bool isDefaultDriveReadOnly();
+
+bool switchCurrentDrive(unsigned int driveID);
+
+void setCurrentDriveAsDefault();
+
+int getDefaultDrive();
+
+char* computeFullPath(const char* relative, char* absolute);
+
 bool aptMainLoop();
 
 void* memAlloc(unsigned int iSize);
+
+#define START_DRIVE_RO (isDefaultDriveReadOnly())
 
 #else
 
@@ -25,15 +43,19 @@ void openSDArchive();
 
 void closeSDArchive();
 
+#define START_DRIVE_RO false
+
 #endif
 
-bool fileExists(char *path);
+bool fileExists(const char *path);
 
 size_t fileSize(const char *path);
 
 int fileReadOffset(const char *path, void *data, size_t size, u32 offset);
 
 int fileRead(const char *path, void *data, size_t size);
+
+int fileWrite(const char *path, void *data, size_t size);
 
 int getFileHandleSize();
 
