@@ -9,14 +9,15 @@ extern "C" {
 
 #include "arm9/source/common.h"
 #define CONFIG_PATH "/a9lh.cfg\0Free space for binary patch to chainload another instance of CtrBootManager9... Space ends up now!"
-
+#define CONFIG_PATH_RO "/CtrBootManager.cfg"
 #else
     
 #include <3ds.h>
 #include "utility.h"
 #define CONFIG_PATH "/boot.cfg"
-
+#define CONFIG_PATH_RO CONFIG_PATH
 #endif
+
 
 #include "draw.h"
 #include "loader.h" // Binary patches define
