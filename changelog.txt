@@ -1,3 +1,15 @@
+2.5.0
+
+SysNAND location supported (only for A9LH/B9S versions):
+- Binaries from SysNAND can be started or added as boot entry from "File Browser" (press Select key to switch for SD card to SysNAND)
+- CtrBootManager can be put on SysNAND (for example, as "nand:/boot.firm"): in this case, its configuration file become "nand:/CtrBootManager.cfg"
+- When CtrBootManager is put on SysNAND, safe mode is triggered: it won't save its configuration, you must manually change "CtrBootManager.cfg"
+
+New pathes prefixes:
+- "sdmc:/" targets the SD card
+- "nand:/" targets the SysNAND
+- "/" targets the drive where CtrBootManager is booted from
+
 2.4.0
 
 Include B9S version named "CtrBootManager9.firm"
