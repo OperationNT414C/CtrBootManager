@@ -56,13 +56,32 @@ void __appExit() {
 }
 #endif
 
-int main() {
+int main(int argc, char **argv) {
 
 #ifdef ARM9
     *(u32 *) 0x10000020 = 0;
     *(u32 *) 0x10000020 = 0x340;
-    FATFS fs;
-    f_mount(&fs, "0:", 0);
+
+    // Code inspired from Luma3DS
+    u16 launchedPath[4];
+    if (1 == argc)
+    {
+        u32 i;
+        for(i = 0; i < 4 && argv[0][i] != 0; i++)
+            launchedPath[i] = argv[0][i];
+    }
+    else if (2 == argc)
+    {
+        u32 i;
+        u16 *p = (u16 *)argv[0];
+        for(i = 0; i < 4 && p[i] != 0; i++)
+            launchedPath[i] = p[i];
+    }
+    else
+        launchedPath[0] = 0;
+
+    bool loadedFromSD = (memcmp(launchedPath, "n\0a\0n\0d\0", 8) != 0);
+    initFileSystems(loadedFromSD);
 #else
     if (netloader_init() != 0) {
         // fix SOC_Initialize
