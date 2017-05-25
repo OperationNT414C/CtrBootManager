@@ -39,7 +39,7 @@ Binaries should now be in the `build` folder.
  * delebile 
  * tiniVi
 
-###For FIRM loader code:
+###For FIRM loader and CtrNAND reading code:
  * Aurora Wright
  * TuxSH
 
