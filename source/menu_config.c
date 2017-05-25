@@ -201,142 +201,168 @@ int menu_config() {
             time(&t_start); // reset held timer
         }
 #endif
-        if (kDown & KEY_DOWN) {
-            menu_index++;
-            if (menu_index >= menu_count)
-                menu_index = 0;
-        }
-        else if (kDown & KEY_UP) {
-            menu_index--;
-            if (menu_index < 0)
-                menu_index = menu_count - 1;
-        }
-
-        if (kDown & KEY_LEFT) {
-            keyLeft(menu_index);
-            time(&t_start);
-        } else if (kHeld & KEY_LEFT) {
-            time(&t_end);
-            t_elapsed = t_end - t_start;
-            if (t_elapsed > 0) {
-                keyLeft(menu_index);
-                svcSleep(100);
-            }
-        }
-
-        if (kDown & KEY_RIGHT) {
-            keyRight(menu_index);
-            time(&t_start);
-        } else if (kHeld & KEY_RIGHT) {
-            time(&t_end);
-            t_elapsed = t_end - t_start;
-            if (t_elapsed > 0) {
-                keyRight(menu_index);
-                svcSleep(100);
-            }
-        }
-        
-        if (kDown & KEY_A) {
-            keyIn(menu_index);
-        }
-
-        if (kDown & KEY_B) {
-
-            // Apply password failed behavior
-            int size = 0;
-            if ( pass_fail == config->count )
-                size = snprintf(config->failPath, 256, "reboot");
-            else if ( pass_fail == config->count+1 )
-                size = snprintf(config->failPath, 256, "shutdown");
-    #ifndef ARM9
-            else if ( pass_fail == config->count+2 )
-                size = snprintf(config->failPath, 256, "homemenu");
-    #endif
-            else if ( pass_fail >= 0 )
-            {
-                boot_entry_s* entry = &config->entries[pass_fail];
-                size = snprintf(config->failPath, 256, entry->path);
-                config->failOffset = entry->offset;
-            }
-            if ( pass_fail >= 0 || pass_fail_found )
-                config->failPath[size] = '\0';
-            
-            configSave();
-            return 0;
-        }
-
-        drawBg();
-        drawTitle("*** Boot configuration ***");
-
-        if ( config->timeout >= 0 )
-            drawItem(menu_index == 0, 0, "Timeout:  %i", config->timeout);
-        else
-            drawItem(menu_index == 0, 0, "Timeout:  Disabled");
-
-        drawItem(menu_index == 1, 16, "Default:  %s", config->entries[config->index].title);
-        drawItem(menu_index == 2, 32, "Recovery key:  %s", get_button(config->recovery));
-        
-        if ( config->passMaxAttempt > 0 )
-            drawItem(menu_index == 4, 80, "Password allowed attempts:  %i", config->passMaxAttempt);
-        else
-            drawItem(menu_index == 4, 80, "Password allowed attempts:  Infinite");
-
-        char msg[256];
-        int size = 0;
-        if ( pass_fail < 0 )
+        if (START_DRIVE_RO)
         {
-            if (config->failPath[0] == '\0' || pass_fail_found)
+            if (kDown & KEY_B)
+                return 0;
+            
+            drawBg();
+            drawTitle("*** Informations ***");
+            
+            char* msg = "CtrBootManager has been started from SysNAND.\n\
+For safety reasons, the configuration file cannot be saved.\n\n\
+Please manually create a configuration file named\n\
+\"CtrBootManager.cfg\" and write it to SysNAND root.\n\n\
+I decline all responsability for any harm on your 3DS system!\n\
+Do it at your own risk!!!";
+
+            drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 32, MENU_MIN_Y + 32, msg);
+            if ( IS3DACTIVE )
+                drawTextf(GFX_TOP, GFX_RIGHT, &fontDefault, MENU_MIN_X + 32, MENU_MIN_Y + 32, msg);
+        }
+        else
+        {
+            if (kDown & KEY_DOWN) {
+                menu_index++;
+                if (menu_index >= menu_count)
+                    menu_index = 0;
+            }
+            else if (kDown & KEY_UP) {
+                menu_index--;
+                if (menu_index < 0)
+                    menu_index = menu_count - 1;
+            }
+
+            if (kDown & KEY_LEFT) {
+                keyLeft(menu_index);
+                time(&t_start);
+            } else if (kHeld & KEY_LEFT) {
+                time(&t_end);
+                t_elapsed = t_end - t_start;
+                if (t_elapsed > 0) {
+                    keyLeft(menu_index);
+                    svcSleep(100);
+                }
+            }
+
+            if (kDown & KEY_RIGHT) {
+                keyRight(menu_index);
+                time(&t_start);
+            } else if (kHeld & KEY_RIGHT) {
+                time(&t_end);
+                t_elapsed = t_end - t_start;
+                if (t_elapsed > 0) {
+                    keyRight(menu_index);
+                    svcSleep(100);
+                }
+            }
+            
+            if (kDown & KEY_A) {
+                keyIn(menu_index);
+            }
+
+            if (kDown & KEY_B) {
+
+                // Apply password failed behavior
+                int size = 0;
+                if ( pass_fail == config->count )
+                    size = snprintf(config->failPath, 256, "reboot");
+                else if ( pass_fail == config->count+1 )
+                    size = snprintf(config->failPath, 256, "shutdown");
+        #ifndef ARM9
+                else if ( pass_fail == config->count+2 )
+                    size = snprintf(config->failPath, 256, "homemenu");
+        #endif
+                else if ( pass_fail >= 0 )
+                {
+                    boot_entry_s* entry = &config->entries[pass_fail];
+                    size = snprintf(config->failPath, 256, entry->path);
+                    config->failOffset = entry->offset;
+                }
+                if ( pass_fail >= 0 || pass_fail_found )
+                    config->failPath[size] = '\0';
+                
+                configSave();
+                return 0;
+            }
+
+            drawBg();
+            drawTitle("*** Boot configuration ***");
+
+            if ( config->timeout >= 0 )
+                drawItem(menu_index == 0, 0, "Timeout:  %i", config->timeout);
+            else
+                drawItem(menu_index == 0, 0, "Timeout:  Disabled");
+
+            drawItem(menu_index == 1, 16, "Default:  %s", config->entries[config->index].title);
+            drawItem(menu_index == 2, 32, "Recovery key:  %s", get_button(config->recovery));
+            
+            if ( config->passMaxAttempt > 0 )
+                drawItem(menu_index == 4, 80, "Password allowed attempts:  %i", config->passMaxAttempt);
+            else
+                drawItem(menu_index == 4, 80, "Password allowed attempts:  Infinite");
+
+            char msg[256];
+            int size = 0;
+            if ( pass_fail < 0 )
             {
-                if (config->failSplashTop[0] != '\0' || config->failSplashBot[0] != '\0')
-                    size = snprintf(msg, 256, "Freeze on failure images");
-                else if (config->splashTopDef[0] != '\0' || config->splashBotDef[0] != '\0')
-                    size = snprintf(msg, 256, "Freeze on default splash screen");
+                if (config->failPath[0] == '\0' || pass_fail_found)
+                {
+                    if (config->failSplashTop[0] != '\0' || config->failSplashBot[0] != '\0')
+                        size = snprintf(msg, 256, "Freeze on failure images");
+                    else if (config->splashTopDef[0] != '\0' || config->splashBotDef[0] != '\0')
+                        size = snprintf(msg, 256, "Freeze on default splash screen");
+                    else
+                        size = snprintf(msg, 256, "Freeze on last rendered image");
+                }
                 else
-                    size = snprintf(msg, 256, "Freeze on last rendered image");
+                    size = snprintf(msg, 256, "Load \"%s\"", config->failPath);
+            }
+            else if ( pass_fail == config->count )
+                size = snprintf(msg, 256, "Reboot");
+            else if ( pass_fail == config->count+1 )
+                size = snprintf(msg, 256, "Power off");
+        #ifndef ARM9
+            else if ( pass_fail == config->count+2 )
+                size = snprintf(msg, 256, "Return to home menu");
+        #endif
+            else
+                size = snprintf(msg, 256, "Load %s", config->entries[pass_fail].title);
+            msg[size] = '\0';
+
+            drawItem(menu_index == 5, 96, "Password fail behavior:  %s", msg);
+            drawItem(menu_index == 6, 112, "Password size:  %i", pass_size);
+            drawItem(menu_index == 7, 128, "Password:");
+            
+            size = 0;
+            if ( config->passSize > 0 )
+            {
+                for ( int i = 0 ; i < config->passSize ; i++ )
+                {
+                    size += snprintf(msg+size, 256, get_button(config->password[i]));
+                    if ( i < config->passSize-1 )
+                        size += snprintf(msg+size, 256, (i%4 == 3) ? "\n" : ", ");
+                }
             }
             else
-                size = snprintf(msg, 256, "Load \"%s\"", config->failPath);
+                size = snprintf(msg, 256, "None");
+            msg[size] = '\0';
+            
+            drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 64, MENU_MIN_Y + 128, msg);
+            if ( IS3DACTIVE )
+                drawTextf(GFX_TOP, GFX_RIGHT, &fontDefault, MENU_MIN_X + 64, MENU_MIN_Y + 128, msg);
+            
+        #ifdef ARM9
+            drawItem(menu_index == 3, 48, "Screen initialization brightness:  %i", BRIGHTNESS_COUNT-config->brightness);  
+        #else
+            drawItem(menu_index == 3, 48, "Bootfix:  %i", config->autobootfix);
+        #endif
         }
-        else if ( pass_fail == config->count )
-            size = snprintf(msg, 256, "Reboot");
-        else if ( pass_fail == config->count+1 )
-            size = snprintf(msg, 256, "Power off");
-#ifndef ARM9
-        else if ( pass_fail == config->count+2 )
-            size = snprintf(msg, 256, "Return to home menu");
-#endif
-        else
-            size = snprintf(msg, 256, "Load %s", config->entries[pass_fail].title);
-        msg[size] = '\0';
-
-        drawItem(menu_index == 5, 96, "Password fail behavior:  %s", msg);
-        drawItem(menu_index == 6, 112, "Password size:  %i", pass_size);
-        drawItem(menu_index == 7, 128, "Password:");
-        
-        size = 0;
-        if ( config->passSize > 0 )
-        {
-            for ( int i = 0 ; i < config->passSize ; i++ )
-            {
-                size += snprintf(msg+size, 256, get_button(config->password[i]));
-                if ( i < config->passSize-1 )
-                    size += snprintf(msg+size, 256, (i%4 == 3) ? "\n" : ", ");
-            }
-        }
-        else
-            size = snprintf(msg, 256, "None");
-        msg[size] = '\0';
-        
-        drawTextf(GFX_TOP, GFX_LEFT, &fontDefault, MENU_MIN_X + 64, MENU_MIN_Y + 128, msg);
-        if ( IS3DACTIVE )
-            drawTextf(GFX_TOP, GFX_RIGHT, &fontDefault, MENU_MIN_X + 64, MENU_MIN_Y + 128, msg);
         
 #ifdef ARM9
-        drawItem(menu_index == 3, 48, "Screen initialization brightness:  %i", BRIGHTNESS_COUNT-config->brightness);
-        drawInfo("CtrBootManager9 v2.4.0");    
+        drawInfo("CtrBootManager9 v2.5.0");    
 #else
-        drawItem(menu_index == 3, 48, "Bootfix:  %i", config->autobootfix);
-        drawInfo("CtrBootManager v2.4.0");
+        drawInfo("CtrBootManager v2.5.0");
 #endif
 
         swapFrameBuffers();
