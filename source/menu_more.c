@@ -7,6 +7,7 @@
 
 #include <3ds.h>
 #include <string.h>
+#include <stdio.h>
 #include "menu_netloaderarm9.h"
 
 #endif
@@ -21,10 +22,12 @@
 #ifdef ARM9
 #define MENU_COUNT 4
 static char menu_item[4][64] = {"File browser", "Settings", "Reboot", "PowerOff"};
+#define SETTING_ID 1
 #else
 #define MENU_COUNT 6
 static char menu_item[6][64] = {"File browser", "Netload 3dsx",
                                  "Netload arm9", "Settings", "Reboot", "PowerOff"};
+#define SETTING_ID 3
 #endif
 
 static int menu_index = 0;
@@ -46,6 +49,9 @@ int menu_choose() {
 }
 
 int menu_more() {
+    
+    if (START_DRIVE_RO)
+        sprintf(menu_item[SETTING_ID], "Informations");
 
     menu_password();
     menu_index = 0;
@@ -123,7 +129,10 @@ static void draw() {
             drawInfo("Browse for a file to boot");
             break;
         case 1:
-            drawInfo("Edit boot settings");
+            if (START_DRIVE_RO)
+                drawInfo("See informations");
+            else
+                drawInfo("Edit boot settings");
             break;
         case 2:
             drawInfo("Reboot the 3ds...");
@@ -142,7 +151,10 @@ static void draw() {
             drawInfo("Netload a file (arm9) from the computer with nc");
             break;
         case 3:
-            drawInfo("Edit boot settings");
+            if (START_DRIVE_RO)
+                drawInfo("See informations");
+            else
+                drawInfo("Edit boot settings");
             break;
         case 4:
             drawInfo("Reboot the 3ds...");
