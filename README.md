@@ -22,6 +22,9 @@ Binaries should now be in the `build` folder.
 
 ##Credits
 
+###To original developer:
+ * Cpasjuste
+
 ###For contributions to hb_menu:
  * smea : code
  * GEMISIS : code
