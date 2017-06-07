@@ -1,7 +1,7 @@
 #ifndef ARM9
 
-#include <string.h>
 #include <3ds.h>
+#include <string.h>
 #include "brahma.h"
 
 #else
@@ -10,12 +10,12 @@
 #include "arm9/source/fatfs/ff.h"
 #include "stage2_bin.h"
 #include "memory.h"
-#include "screeninit.h"
 #include "arm9/source/firm.h"
-#include "../build/loader.h"
+#include "arm9/source/screen.h"
 
 #endif
 
+#include <strings.h>
 #include "draw.h"
 #include "loader.h"
 #include "utility.h"
@@ -120,6 +120,7 @@ int load_bin(char *path, long offset, binary_patch* patches, int patchesCount, c
 }
 
 static Firm *const firm = (Firm *const)PTR_PAYLOAD_FIRM_DATA;
+extern struct fb fbs[2];
 
 int load_firm(char *path, binary_patch* patches, int patchesCount, char* splashTop, char* splashBot)
 {
@@ -127,7 +128,7 @@ int load_firm(char *path, binary_patch* patches, int patchesCount, char* splashT
     u32 maxPayloadSize = (u32)((u8 *)loaderAddress - (u8 *)firm);
 
     size_t payloadSize = fileSize(path);
-    if (!payloadSize || payloadSize > maxPayloadSize) {
+    if (!payloadSize || payloadSize <= 0x200 || payloadSize > maxPayloadSize) {
         return -1;
     }
 
@@ -135,7 +136,7 @@ int load_firm(char *path, binary_patch* patches, int patchesCount, char* splashT
         return -1;
     }
 
-    if(!checkFirmPayload(firm)) {
+    if(!checkFirmPayload(firm, payloadSize)) {
         return -1;
     }
 
@@ -144,11 +145,9 @@ int load_firm(char *path, binary_patch* patches, int patchesCount, char* splashT
 
     // Luma3DS loading support
     char absPath[256];
-    char *argv[1] = {computeFullPath(path, absPath)};
+    char *argv[2] = {computeFullPath(path, absPath), (char *)fbs};
 
-    memcpy((void*)loaderAddress, loader, loader_size);
-    ((void (*)(int, char **, u32))loaderAddress)(1, argv, 0x0000BEEF);
-
+    launchFirm((firm->reserved2[0] & 1) ? 2 : 1, argv);
     return 0;
 }
 
