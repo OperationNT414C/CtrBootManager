@@ -5,17 +5,17 @@
 *   Screen deinit code by tiniVi.
 */
 
-#ifdef ARM9
-
-#include "screeninit.h"
+#include "screen.h"
 
 #include <stdio.h>
-#include "arm9/source/i2c.h"
-#include "../build/screeninit.h"
+#include "i2c.h"
+#include "../../../build/screeninit.h"
+
+struct fb fbs[2];
 
 vu32 *arm11Entry = (u32 *)0x1FFFFFF8;
 
-void deinitScreens(void)
+/*void deinitScreens(void)
 {
     void __attribute__((naked)) ARM11(void)
     {
@@ -42,7 +42,7 @@ void deinitScreens(void)
         *arm11Entry = (u32)ARM11;
         while(*arm11Entry);
     }
-}
+}*/
 
 const u32 brightness[BRIGHTNESS_COUNT] = {0x5F, 0x4C, 0x39, 0x26};
 
@@ -91,5 +91,3 @@ void initScreens(u8 brightnessLevel)
     *arm11Entry = (u32)ARM11;
     while(*arm11Entry);
 }*/
-
-#endif
