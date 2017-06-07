@@ -6,12 +6,13 @@
 #else
 
 #include <3ds.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 #include "menu_netloaderarm9.h"
 
 #endif
 
+#include <strings.h>
 #include "config.h"
 #include "draw.h"
 #include "utility.h"
