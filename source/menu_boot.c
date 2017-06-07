@@ -2,7 +2,7 @@
 
 #include "arm9/source/common.h"
 #include "arm9/source/hid.h"
-#include "screeninit.h"
+#include "arm9/source/screen.h"
 
 #else
 #include <3ds.h>
