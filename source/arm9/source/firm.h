@@ -21,4 +21,5 @@ typedef struct __attribute__((packed))
     FirmSection section[4];
 } Firm;
 
-bool checkFirmPayload(Firm* firm);
+bool checkFirmPayload(Firm* firm, u32 payloadSize);
+void launchFirm(int argc, char **argv);
