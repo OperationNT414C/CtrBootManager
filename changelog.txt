@@ -1,3 +1,7 @@
+2.5.1
+
+Boot9Strap v1.2 support
+
 2.5.0
 
 SysNAND location supported (only for A9LH/B9S versions):
