@@ -4,15 +4,18 @@
 #include "arm9/source/hid.h"
 #include "arm9/source/fatfs/ff.h"
 #include "memory.h"
+
 #else
+
 #include <3ds.h>
 #include <sys/dirent.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #endif
 
+#include <strings.h>
 #include "draw.h"
 #include "picker.h"
 #include "utility.h"
