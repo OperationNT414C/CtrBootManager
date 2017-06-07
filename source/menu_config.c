@@ -1,11 +1,11 @@
-#include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <time.h>
 
 #ifdef ARM9
 #include "arm9/source/common.h"
 #include "arm9/source/hid.h"
-#include "screeninit.h"
+#include "arm9/source/screen.h"
 #else
 #include <3ds.h>
 #endif
@@ -360,9 +360,9 @@ Do it at your own risk!!!";
         }
         
 #ifdef ARM9
-        drawInfo("CtrBootManager9 v2.5.0");    
+        drawInfo("CtrBootManager9 v2.5.1");    
 #else
-        drawInfo("CtrBootManager v2.5.0");
+        drawInfo("CtrBootManager v2.5.1");
 #endif
 
         swapFrameBuffers();
