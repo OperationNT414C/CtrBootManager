@@ -3,7 +3,7 @@
 CtrBootManager is a boot manager for some 3DS homebrew applications, like HBL and CFW.
 
 ##Dependencies
-- devkitpro-4.5 at least (ctrulib-1.0 at least)
+- devkitpro-4.5 at least (ctrulib-1.2.1 at least)
 - libconfig in portlibs (tried with v1.5)
 
 ##Building
