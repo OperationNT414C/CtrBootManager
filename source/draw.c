@@ -5,6 +5,7 @@
 #ifdef ARM9
 #include "arm9/source/common.h"
 #include "memory.h"
+#include "arm9/source/screen.h"
 #else
 #include <3ds.h>
 #endif
@@ -14,6 +15,8 @@
 #include "anim.h"
 
 #ifdef ARM9
+
+extern struct fb fbs[2];
 
 u8 *gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16 *width, u16 *height) {
     //WARNING: width and height must stay inverted to simulate 3DSX version behavior!
@@ -279,8 +282,8 @@ void clearBot(u8 bot[8]) {
 
 void swapFrameBuffers() {
 #ifdef ARM9
-    memcpy(PTR_TOP_SCREEN, PTR_TOP_SCREEN_BUF, TOP_SCREEN_SIZE);
-    memcpy(PTR_BOT_SCREEN, PTR_BOT_SCREEN_BUF, BOT_SCREEN_SIZE);
+    memcpy(fbs[0].top_left, PTR_TOP_SCREEN_BUF, TOP_SCREEN_SIZE);
+    memcpy(fbs[0].bottom, PTR_BOT_SCREEN_BUF, BOT_SCREEN_SIZE);
 #else
     gfxFlushBuffers();
     gfxSwapBuffers();
