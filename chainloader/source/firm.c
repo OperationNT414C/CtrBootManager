@@ -1,6 +1,6 @@
 /*
 *   This file is part of Luma3DS
-*   Copyright (C) 2017 Aurora Wright, TuxSH
+*   Copyright (C) 2016-2017 Aurora Wright, TuxSH
 *
 *   This program is free software: you can redistribute it and/or modify
 *   it under the terms of the GNU General Public License as published by
@@ -15,30 +15,28 @@
 *   You should have received a copy of the GNU General Public License
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *
-*   Additional Terms 7.b of GPLv3 applies to this file: Requiring preservation of specified
-*   reasonable legal notices or author attributions in that material or in the Appropriate Legal
-*   Notices displayed by works containing it.
+*   Additional Terms 7.b and 7.c of GPLv3 apply to this file:
+*       * Requiring preservation of specified reasonable legal notices or
+*         author attributions in that material or in the Appropriate Legal
+*         Notices displayed by works containing it.
+*       * Prohibiting misrepresentation of the origin of that material,
+*         or requiring that modified versions of such material be marked in
+*         reasonable ways as different from the original version.
 */
 
 #include "firm.h"
 #include "memory.h"
 #include "cache.h"
 
+void disableMpuAndJumpToEntrypoints(int argc, char **argv, void *arm11Entry, void *arm9Entry);
+
 void launchFirm(Firm *firm, int argc, char **argv)
 {
-
     //Copy FIRM sections to respective memory locations
-    for(u32 sectionNum = 0; sectionNum < 4 && firm->section[sectionNum].size != 0; sectionNum++)
+    for(u32 sectionNum = 0; sectionNum < 4; sectionNum++)
         memcpy(firm->section[sectionNum].address, (u8 *)firm + firm->section[sectionNum].offset, firm->section[sectionNum].size);
 
-    //Set ARM11 entrypoint
-    *(vu32 *)0x1FFFFFFC = (u32)firm->arm11Entry;
-
-    //Ensure that all memory transfers have completed and that the caches have been flushed
-    flushCaches();
-
-    //Jump to ARM9 entrypoint. Also give it additional arguments it can dismiss
-    ((void (*)(int, char**, u32))firm->arm9Entry)(argc, argv, 0x0000BEEF);
+    disableMpuAndJumpToEntrypoints(argc, argv, firm->arm9Entry, firm->arm11Entry);
 
     __builtin_unreachable();
 }
