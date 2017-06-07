@@ -168,12 +168,11 @@ FS_Archive sdmcArchive;
 extern void __appExit();
 
 void openSDArchive() {
-    sdmcArchive = (FS_Archive) {0x00000009, (FS_Path) {PATH_EMPTY, 1, (u8 *) ""}};
-    FSUSER_OpenArchive(&sdmcArchive);
+    FSUSER_OpenArchive(&sdmcArchive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 }
 
 void closeSDArchive() {
-    FSUSER_CloseArchive(&sdmcArchive);
+    FSUSER_CloseArchive(sdmcArchive);
 }
 
 #endif
@@ -485,9 +484,9 @@ void reboot() {
     while (true);
 #else
     aptInit();
-    aptOpenSession();
+    //aptOpenSession();
     APT_HardwareResetAsync();
-    aptCloseSession();
+    //aptCloseSession();
     aptExit();
 #endif
 }
