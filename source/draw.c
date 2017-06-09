@@ -16,8 +16,6 @@
 
 #ifdef ARM9
 
-extern struct fb fbs[2];
-
 u8 *gfxGetFramebuffer(gfxScreen_t screen, gfx3dSide_t side, u16 *width, u16 *height) {
     //WARNING: width and height must stay inverted to simulate 3DSX version behavior!
     if (screen == GFX_TOP) {
