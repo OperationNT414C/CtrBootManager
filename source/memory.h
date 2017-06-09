@@ -6,6 +6,7 @@
 #define CTRBOOTMANAGER_MEMORY_H
 
 #define PTR_TOP_SCREEN          (void**)(0x23FFFE00)
+#define PTR_TOP_RIGHT_SCREEN    (void**)(0x23FFFE04)
 #define PTR_BOT_SCREEN          (void**)(0x23FFFE08)
 #define PTR_TOP_SCREEN_BUF      (u8*)(0x25000000)
 #define PTR_BOT_SCREEN_BUF      (u8*)(0x25046500)
