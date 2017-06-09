@@ -67,6 +67,15 @@ int main() {
     *(u32 *) 0x10000020 = 0;
     *(u32 *) 0x10000020 = 0x340;
 
+    // Setup framebuffers:
+    // May be corrupted if screen were not initialized or if framebuffers were pushed on arguments
+    fbs[0].top_left = (u8 *)*PTR_TOP_SCREEN;
+    fbs[1].top_left = (u8 *)*PTR_TOP_SCREEN;
+    fbs[0].top_right = (u8 *)*PTR_TOP_RIGHT_SCREEN;
+    fbs[1].top_right = (u8 *)*PTR_TOP_RIGHT_SCREEN;
+    fbs[0].bottom = (u8 *)*PTR_BOT_SCREEN;
+    fbs[1].bottom = (u8 *)*PTR_BOT_SCREEN;
+
     // Code inspired from Luma3DS
     u16 launchedPath[4];
     if ((magicWord & 0xFFFF) == 0xBEEF && argc >= 1)
@@ -74,6 +83,32 @@ int main() {
         u32 i;
         for(i = 0; i < 4 && argv[0][i] != 0; i++)
             launchedPath[i] = argv[0][i];
+        
+        // Framebuffers management
+        if(argc >= 2)
+        {
+            u8 **fb = (u8 **)(void *)argv[1];
+            fbs[0].top_left = fb[0];
+            fbs[0].top_right = fb[1];
+            fbs[0].bottom = fb[2];
+
+            if (argc >= 4)
+            {
+                fbs[1].top_left = fb[3];
+                fbs[1].top_right = fb[4];
+                fbs[1].bottom = fb[5];
+            }
+            else
+            {
+                fbs[1].top_left = fbs[0].top_left;
+                fbs[1].top_right = fbs[0].top_right;
+                fbs[1].bottom = fbs[0].bottom;
+            }
+
+            *PTR_TOP_SCREEN = fbs[0].top_left;
+            *PTR_TOP_RIGHT_SCREEN = fbs[0].top_right;
+            *PTR_BOT_SCREEN = fbs[0].bottom;
+        }
     }
     else if (magicWord == 0xBABE && argc == 2)
     {
@@ -85,40 +120,6 @@ int main() {
     else
         launchedPath[0] = 0;
 
-    // Framebuffers management
-    if(argc >= 2)
-    {
-        u8 **fb = (u8 **)(void *)argv[1];
-        fbs[0].top_left = fb[0];
-        fbs[0].top_right = fb[1];
-        fbs[0].bottom = fb[2];
-
-        if (argc >= 4)
-        {
-            fbs[1].top_left = fb[3];
-            fbs[1].top_right = fb[4];
-            fbs[1].bottom = fb[5];
-        }
-        else
-        {
-            fbs[1].top_left = fbs[0].top_left;
-            fbs[1].top_right = fbs[0].top_right;
-            fbs[1].bottom = fbs[0].bottom;
-        }
-        
-        *PTR_TOP_SCREEN = fbs[0].top_left;
-        *PTR_BOT_SCREEN = fbs[0].bottom;
-    }
-    else
-    {
-        fbs[0].top_left = (u8 *)0x18300000;
-        fbs[1].top_left = (u8 *)0x18300000;
-        fbs[0].top_right = (u8 *)0x18300000;
-        fbs[1].top_right = (u8 *)0x18300000;
-        fbs[0].bottom = (u8 *)0x18346500;
-        fbs[1].bottom = (u8 *)0x18346500;
-    }
-    
     bool loadedFromSD = (memcmp(launchedPath, "n\0a\0n\0d\0", 8) != 0);
     initFileSystems(loadedFromSD);
 #else
