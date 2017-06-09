@@ -44,8 +44,6 @@ vu32 *arm11Entry = (u32 *)0x1FFFFFF8;
     }
 }*/
 
-const u32 brightness[BRIGHTNESS_COUNT] = {0x5F, 0x4C, 0x39, 0x26};
-
 void initScreens(u8 brightnessLevel)
 {
     if(PDN_GPU_CNT == 1)
@@ -61,10 +59,20 @@ void initScreens(u8 brightnessLevel)
 
         //Turn on backlight
         i2cWriteRegister(I2C_DEV_MCU, 0x22, 0x2A);
+        
+        // Setup arguments for FIRM launch
+        fbs[0].top_left = (u8 *)0x18300000;
+        fbs[1].top_left = (u8 *)0x18400000;
+        fbs[0].top_right = (u8 *)0x18300000;
+        fbs[1].top_right = (u8 *)0x18400000;
+        fbs[0].bottom = (u8 *)0x18346500;
+        fbs[1].bottom = (u8 *)0x18446500;
     }
 }
 
-/*void updateBrightness(u8 brightnessLevel)
+/*const u32 brightness[BRIGHTNESS_COUNT] = {0x5F, 0x4C, 0x39, 0x26};
+
+void updateBrightness(u8 brightnessLevel)
 {
     static int brightnessValue;
     brightnessValue = brightness[brightnessLevel%BRIGHTNESS_COUNT];
