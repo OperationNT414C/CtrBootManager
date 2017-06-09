@@ -1,6 +1,6 @@
 2.5.2
 
-Fix crash when booted from A9LH or B9S v1.2 (due to framebuffers always gotten from arguments)
+Fix crash when booted from A9LH or B9S v1.0 (due to framebuffers always gotten from arguments)
 
 2.5.1
 
