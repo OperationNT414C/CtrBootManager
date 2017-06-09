@@ -360,9 +360,9 @@ Do it at your own risk!!!";
         }
         
 #ifdef ARM9
-        drawInfo("CtrBootManager9 v2.5.1");    
+        drawInfo("CtrBootManager9 v2.5.2");    
 #else
-        drawInfo("CtrBootManager v2.5.1");
+        drawInfo("CtrBootManager v2.5.2");
 #endif
 
         swapFrameBuffers();
