@@ -37,11 +37,14 @@ void main(void)
    *(vu32 *)0x1040045C = 0x00f00190;
    *(vu32 *)0x10400460 = 0x01c100d1;
    *(vu32 *)0x10400464 = 0x01920002;
-   *(vu32 *)0x10400468 = 0x18300000;
+   *(vu32 *)0x10400468 = 0x18300000; // Framebuffer top left first address
+   *(vu32 *)0x1040046C = 0x18400000; // Framebuffer top left second address
    *(vu32 *)0x10400470 = 0x80341;
    *(vu32 *)0x10400474 = 0x00010501;
-   *(vu32 *)0x10400478 = 0;
+   *(vu32 *)0x10400478 = 0; // Framebuffer bottom select
    *(vu32 *)0x10400490 = 0x000002D0;
+   *(vu32 *)0x10400494 = 0x18300000; // Framebuffer top right first address
+   *(vu32 *)0x10400498 = 0x18400000; // Framebuffer top right second address
    *(vu32 *)0x1040049C = 0x00000000;
 
    // Disco register
@@ -71,10 +74,11 @@ void main(void)
    *(vu32 *)0x1040055C = 0x00f00140;
    *(vu32 *)0x10400560 = 0x01c100d1;
    *(vu32 *)0x10400564 = 0x01920052;
-   *(vu32 *)0x10400568 = 0x18300000 + 0x46500;
+   *(vu32 *)0x10400568 = 0x18300000 + 0x46500; // Framebuffer bottom first address
+   *(vu32 *)0x1040056C = 0x18400000 + 0x46500; // Framebuffer bottom second address
    *(vu32 *)0x10400570 = 0x80301;
    *(vu32 *)0x10400574 = 0x00010501;
-   *(vu32 *)0x10400578 = 0;
+   *(vu32 *)0x10400578 = 0; // Framebuffer bottom select
    *(vu32 *)0x10400590 = 0x000002D0;
    *(vu32 *)0x1040059C = 0x00000000;
 
@@ -83,11 +87,11 @@ void main(void)
        *(vu32 *)0x10400584 = 0x10101 * i;
 
    *(vu32 *)0x10400468 = 0x18300000;
-   *(vu32 *)0x1040046c = 0x18300000;
+   *(vu32 *)0x1040046c = 0x18400000;
    *(vu32 *)0x10400494 = 0x18300000;
-   *(vu32 *)0x10400498 = 0x18300000;
+   *(vu32 *)0x10400498 = 0x18400000;
    *(vu32 *)0x10400568 = 0x18346500;
-   *(vu32 *)0x1040056c = 0x18346500;
+   *(vu32 *)0x1040056c = 0x18446500;
 
    //Set CakeBrah framebuffers
    *((vu32 *)0x23FFFE00) = 0x18300000;
